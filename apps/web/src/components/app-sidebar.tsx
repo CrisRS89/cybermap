@@ -2,7 +2,7 @@ import { navigationItems } from "@/data/dashboard-data";
 
 export function AppSidebar() {
   return (
-    <aside className="border-r border-cyan-400/10 bg-slate-950/70 px-5 py-6 backdrop-blur">
+    <aside className="hidden border-r border-cyan-400/10 bg-slate-950/70 px-5 py-6 backdrop-blur lg:block">
       <div className="mb-10">
         <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/70">
           CyberMap

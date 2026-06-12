@@ -2,7 +2,7 @@ import { recentEvents } from "@/data/dashboard-data";
 
 export function RecentEvents() {
   return (
-    <section className="rounded-3xl border border-cyan-400/10 bg-slate-950/55 p-6">
+    <section className="rounded-3xl border border-cyan-400/10 bg-slate-950/55 p-4 sm:p-6">
       <h3 className="text-lg font-semibold">Eventos recientes</h3>
       <div className="mt-4 space-y-3">
         {recentEvents.map((event) => (
