@@ -1,0 +1,47 @@
+import { navigationItems } from "@/data/dashboard-data";
+
+export function AppSidebar() {
+  return (
+    <aside className="border-r border-cyan-400/10 bg-slate-950/70 px-5 py-6 backdrop-blur">
+      <div className="mb-10">
+        <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/70">
+          CyberMap
+        </p>
+        <h1 className="mt-2 text-2xl font-semibold tracking-tight">
+          Security Ops
+        </h1>
+        <p className="mt-2 text-sm text-slate-400">
+          Plataforma modular de ciberseguridad asistida por IA.
+        </p>
+      </div>
+
+      <nav className="space-y-2">
+        {navigationItems.map((item) => (
+          <button
+            key={item.label}
+            className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition ${
+              item.status === "active"
+                ? "border border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
+                : "border border-transparent text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+            }`}
+          >
+            <span>{item.label}</span>
+            <span className="text-xs uppercase text-slate-500">
+              {item.status}
+            </span>
+          </button>
+        ))}
+      </nav>
+
+      <div className="mt-10 rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
+        <p className="text-sm font-medium text-amber-200">
+          Modo seguro activo
+        </p>
+        <p className="mt-2 text-xs leading-5 text-slate-400">
+          Los agentes, conectores y escaneos activos requerirán validación
+          explícita antes de ejecutarse.
+        </p>
+      </div>
+    </aside>
+  );
+}
