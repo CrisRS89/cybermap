@@ -1,6 +1,6 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { useMemo, useSyncExternalStore } from "react";
 
 const THEMES = ["Dark Pro", "Dracula", "Hacking Green", "Claude Warm"] as const;
 const BACKGROUNDS = ["Nodos", "Cuadrícula", "Puntos", "Ninguno"] as const;
@@ -21,21 +21,45 @@ const defaultSettings: CyberMapSettings = {
   language: LANGUAGES[0],
 };
 
+const defaultSettingsRaw = JSON.stringify(defaultSettings);
+
 /**
- * Lee la configuración persistida.
- * Se protege contra SSR y JSON inválido.
+ * Devuelve un snapshot primitivo y estable.
+ * useSyncExternalStore no debe recibir objetos nuevos en cada render.
  */
-function readSettingsSnapshot(): CyberMapSettings {
+function readSettingsRawSnapshot(): string {
   if (typeof window === "undefined") {
-    return defaultSettings;
+    return defaultSettingsRaw;
   }
 
-  const rawSettings = window.localStorage.getItem(LOCAL_STORAGE_KEY);
+  return window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? defaultSettingsRaw;
+}
 
-  if (!rawSettings) {
-    return defaultSettings;
-  }
+/**
+ * Snapshot usado durante SSR.
+ */
+function readServerSettingsRawSnapshot(): string {
+  return defaultSettingsRaw;
+}
 
+/**
+ * Suscribe React a cambios de localStorage.
+ */
+function subscribeToSettingsChanges(onStoreChange: () => void) {
+  window.addEventListener(STORAGE_EVENT_NAME, onStoreChange);
+  window.addEventListener("storage", onStoreChange);
+
+  return () => {
+    window.removeEventListener(STORAGE_EVENT_NAME, onStoreChange);
+    window.removeEventListener("storage", onStoreChange);
+  };
+}
+
+/**
+ * Convierte el string persistido en configuración segura.
+ * Si el JSON está corrupto o incompleto, vuelve a defaults.
+ */
+function parseSettings(rawSettings: string): CyberMapSettings {
   try {
     const parsedSettings = JSON.parse(rawSettings) as Partial<CyberMapSettings>;
 
@@ -50,24 +74,10 @@ function readSettingsSnapshot(): CyberMapSettings {
 }
 
 /**
- * Suscribe React a cambios externos de localStorage.
- * Esto evita usar setState dentro de useEffect.
- */
-function subscribeToSettingsChanges(onStoreChange: () => void) {
-  window.addEventListener(STORAGE_EVENT_NAME, onStoreChange);
-  window.addEventListener("storage", onStoreChange);
-
-  return () => {
-    window.removeEventListener(STORAGE_EVENT_NAME, onStoreChange);
-    window.removeEventListener("storage", onStoreChange);
-  };
-}
-
-/**
  * Persiste una actualización parcial y notifica a React.
  */
 function updateSettings(nextSettings: Partial<CyberMapSettings>) {
-  const currentSettings = readSettingsSnapshot();
+  const currentSettings = parseSettings(readSettingsRawSnapshot());
   const updatedSettings = {
     ...currentSettings,
     ...nextSettings,
@@ -82,11 +92,13 @@ function updateSettings(nextSettings: Partial<CyberMapSettings>) {
 }
 
 export function SettingsForm() {
-  const settings = useSyncExternalStore(
+  const rawSettings = useSyncExternalStore(
     subscribeToSettingsChanges,
-    readSettingsSnapshot,
-    () => defaultSettings
+    readSettingsRawSnapshot,
+    readServerSettingsRawSnapshot
   );
+
+  const settings = useMemo(() => parseSettings(rawSettings), [rawSettings]);
 
   return (
     <div className="space-y-6 rounded-3xl border border-cyan-400/10 bg-slate-950/55 p-6 shadow-2xl shadow-cyan-950/20">
