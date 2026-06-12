@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { navigationItems } from "@/data/dashboard-data";
 
 export function MobileNav() {
@@ -20,8 +21,9 @@ export function MobileNav() {
 
       <div className="flex gap-2 overflow-x-auto pb-1">
         {navigationItems.map((item) => (
-          <button
+          <Link
             key={item.label}
+            href={item.href}
             className={`shrink-0 rounded-full border px-3 py-2 text-xs transition ${
               item.status === "active"
                 ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
@@ -29,7 +31,7 @@ export function MobileNav() {
             }`}
           >
             {item.label}
-          </button>
+          </Link>
         ))}
       </div>
     </nav>

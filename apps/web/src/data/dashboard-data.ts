@@ -1,9 +1,9 @@
 export const navigationItems = [
-  { label: "Dashboard", status: "active" },
-  { label: "Exploration", status: "ready" },
-  { label: "Blue Team", status: "ready" },
-  { label: "Red Team", status: "locked" },
-  { label: "Settings", status: "ready" },
+  { label: "Dashboard", href: "/", status: "active" },
+  { label: "Exploration", href: "/exploration", status: "ready" },
+  { label: "Blue Team", href: "/blue-team", status: "ready" },
+  { label: "Red Team", href: "/red-team", status: "locked" },
+  { label: "Settings", href: "/settings", status: "ready" },
 ];
 
 export const metricCards = [

@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { navigationItems } from "@/data/dashboard-data";
 
 export function AppSidebar() {
@@ -17,8 +18,9 @@ export function AppSidebar() {
 
       <nav className="space-y-2">
         {navigationItems.map((item) => (
-          <button
+          <Link
             key={item.label}
+            href={item.href}
             className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition ${
               item.status === "active"
                 ? "border border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
@@ -29,7 +31,7 @@ export function AppSidebar() {
             <span className="text-xs uppercase text-slate-500">
               {item.status}
             </span>
-          </button>
+          </Link>
         ))}
       </nav>
 
