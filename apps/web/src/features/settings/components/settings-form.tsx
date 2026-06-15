@@ -8,7 +8,6 @@ import {
   AI_PROVIDERS,
   CONNECTOR_AUTH_MODES,
   CONNECTOR_PRESETS,
-  LANGUAGES,
   MCP_TRANSPORTS,
   THINKING_MODES,
 } from "../settings-options";
@@ -21,6 +20,7 @@ import {
 } from "../settings-storage";
 import { validateSettings } from "../settings-validation";
 import { AppearanceSettingsSection } from "./appearance-settings-section";
+import { LanguageSettingsSection } from "./language-settings-section";
 import { SelectField } from "./select-field";
 import { SettingsSection } from "./settings-section";
 import { TextField } from "./text-field";
@@ -82,21 +82,7 @@ export function SettingsForm() {
 
       <AppearanceSettingsSection settings={settings} />
 
-      <SettingsSection
-        id="language"
-        eyebrow="Language"
-        title="Idioma"
-        description="Selector inicial de idioma. La internacionalización real se implementará luego con archivos de traducción."
-      >
-        <div className="max-w-sm">
-          <SelectField
-            label="Idioma"
-            value={settings.language}
-            options={LANGUAGES}
-            onChange={(language) => updateSettings({ language })}
-          />
-        </div>
-      </SettingsSection>
+      <LanguageSettingsSection settings={settings} />
 
       <SettingsSection
         id="ai-providers"
