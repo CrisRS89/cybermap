@@ -21,6 +21,7 @@ import {
   subscribeToSettingsChanges,
   updateSettings,
 } from "../settings-storage";
+import { validateSettings } from "../settings-validation";
 import { SelectField } from "./select-field";
 import { SettingsSection } from "./settings-section";
 import { TextField } from "./text-field";
@@ -34,9 +35,31 @@ export function SettingsForm() {
   );
 
   const settings = useMemo(() => parseSettings(rawSettings), [rawSettings]);
+  const validationResult = validateSettings(settings);
+
+  function getFieldError(field: string) {
+    return validationResult.issues.find((issue) => issue.field === field)
+      ?.message;
+  }
 
   return (
     <div className="space-y-6">
+      {!validationResult.valid ? (
+        <div className="rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
+          <p className="text-sm font-medium text-amber-200">
+            Configuración con advertencias
+          </p>
+          <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-5 text-slate-400">
+            {validationResult.issues.map((issue) => (
+              <li key={issue.field}>
+                <span className="text-slate-300">{issue.field}</span>:{" "}
+                {issue.message}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
       <SettingsSection
         id="appearance"
         eyebrow="Appearance"
@@ -106,18 +129,32 @@ export function SettingsForm() {
             options={THINKING_MODES}
             onChange={(thinkingMode) => updateSettings({ thinkingMode })}
           />
-          <TextField
-            label="Temperature"
-            value={settings.aiTemperature}
-            placeholder="0.2"
-            onChange={(aiTemperature) => updateSettings({ aiTemperature })}
-          />
-          <TextField
-            label="Max tokens"
-            value={settings.aiMaxTokens}
-            placeholder="2048"
-            onChange={(aiMaxTokens) => updateSettings({ aiMaxTokens })}
-          />
+          <div>
+            <TextField
+              label="Temperature"
+              value={settings.aiTemperature}
+              placeholder="0.2"
+              onChange={(aiTemperature) => updateSettings({ aiTemperature })}
+            />
+            {getFieldError("aiTemperature") ? (
+              <p className="mt-2 text-xs text-amber-200">
+                {getFieldError("aiTemperature")}
+              </p>
+            ) : null}
+          </div>
+          <div>
+            <TextField
+              label="Max tokens"
+              value={settings.aiMaxTokens}
+              placeholder="2048"
+              onChange={(aiMaxTokens) => updateSettings({ aiMaxTokens })}
+            />
+            {getFieldError("aiMaxTokens") ? (
+              <p className="mt-2 text-xs text-amber-200">
+                {getFieldError("aiMaxTokens")}
+              </p>
+            ) : null}
+          </div>
           <SelectField
             label="Privacy mode"
             value={settings.aiPrivacyMode}
@@ -184,14 +221,21 @@ export function SettingsForm() {
               updateSettings({ agentIntegrationType })
             }
           />
-          <TextField
-            label="Timeout segundos"
-            value={settings.agentTimeoutSeconds}
-            placeholder="120"
-            onChange={(agentTimeoutSeconds) =>
-              updateSettings({ agentTimeoutSeconds })
-            }
-          />
+          <div>
+            <TextField
+              label="Timeout segundos"
+              value={settings.agentTimeoutSeconds}
+              placeholder="120"
+              onChange={(agentTimeoutSeconds) =>
+                updateSettings({ agentTimeoutSeconds })
+              }
+            />
+            {getFieldError("agentTimeoutSeconds") ? (
+              <p className="mt-2 text-xs text-amber-200">
+                {getFieldError("agentTimeoutSeconds")}
+              </p>
+            ) : null}
+          </div>
           <TextField
             label="Comando"
             value={settings.agentCommand}
@@ -346,14 +390,21 @@ export function SettingsForm() {
               updateSettings({ connectorAuthMode })
             }
           />
-          <TextField
-            label="Sync interval minutes"
-            value={settings.connectorSyncIntervalMinutes}
-            placeholder="60"
-            onChange={(connectorSyncIntervalMinutes) =>
-              updateSettings({ connectorSyncIntervalMinutes })
-            }
-          />
+          <div>
+            <TextField
+              label="Sync interval minutes"
+              value={settings.connectorSyncIntervalMinutes}
+              placeholder="60"
+              onChange={(connectorSyncIntervalMinutes) =>
+                updateSettings({ connectorSyncIntervalMinutes })
+              }
+            />
+            {getFieldError("connectorSyncIntervalMinutes") ? (
+              <p className="mt-2 text-xs text-amber-200">
+                {getFieldError("connectorSyncIntervalMinutes")}
+              </p>
+            ) : null}
+          </div>
           <TextField
             label="Base URL"
             value={settings.connectorBaseUrl}
