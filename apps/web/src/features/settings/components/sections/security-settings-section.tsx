@@ -1,7 +1,10 @@
+import { getSettingsSectionSchema } from "../../settings-schema";
 import { updateSettings } from "../../settings-storage";
 import type { CyberMapSettings } from "../../settings-types";
 import { SettingsSection } from "./settings-section";
 import { ToggleField } from "../fields/toggle-field";
+
+const sectionSchema = getSettingsSectionSchema("security");
 
 type SecuritySettingsSectionProps = {
   settings: CyberMapSettings;
@@ -12,10 +15,10 @@ export function SecuritySettingsSection({
 }: SecuritySettingsSectionProps) {
   return (
     <SettingsSection
-      id="security"
-      eyebrow="Security"
-      title="Políticas de seguridad"
-      description="Controles globales de ejecución segura. Los defaults priorizan aprobación humana, sandbox y auditoría."
+      id={sectionSchema.id}
+      eyebrow={sectionSchema.eyebrow}
+      title={sectionSchema.title}
+      description={sectionSchema.description}
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <ToggleField
@@ -36,9 +39,7 @@ export function SecuritySettingsSection({
           label="Audit logs"
           description="Registrar eventos críticos para trazabilidad."
           checked={settings.auditLogsEnabled}
-          onChange={(auditLogsEnabled) =>
-            updateSettings({ auditLogsEnabled })
-          }
+          onChange={(auditLogsEnabled) => updateSettings({ auditLogsEnabled })}
         />
       </div>
     </SettingsSection>
