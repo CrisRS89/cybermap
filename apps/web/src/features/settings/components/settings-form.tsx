@@ -1,16 +1,14 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import {
-} from "../settings-options";
+import { validateSettings } from "../settings-validation";
+import type { SettingsValidationIssue } from "../settings-validation";
 import {
   parseSettings,
   readServerSettingsRawSnapshot,
   readSettingsRawSnapshot,
   subscribeToSettingsChanges,
-  updateSettings,
 } from "../settings-storage";
-import { validateSettings } from "../settings-validation";
 import { AgentHubSettingsSection } from "./agent-hub-settings-section";
 import { AiProviderSettingsSection } from "./ai-provider-settings-section";
 import { AppearanceSettingsSection } from "./appearance-settings-section";
@@ -18,14 +16,8 @@ import { ConnectorsSettingsSection } from "./connectors-settings-section";
 import { LanguageSettingsSection } from "./language-settings-section";
 import { McpSettingsSection } from "./mcp-settings-section";
 import { SecuritySettingsSection } from "./security-settings-section";
-import { SettingsSection } from "./settings-section";
 
-type ValidationIssueView = {
-  field: string;
-  message: string;
-};
-
-function ValidationSummary({ issues }: { issues: ValidationIssueView[] }) {
+function ValidationSummary({ issues }: { issues: SettingsValidationIssue[] }) {
   if (issues.length === 0) {
     return null;
   }
@@ -67,113 +59,21 @@ export function SettingsForm() {
       <ValidationSummary issues={validationResult.issues} />
 
       <AppearanceSettingsSection settings={settings} />
-
       <LanguageSettingsSection settings={settings} />
-
       <AiProviderSettingsSection
         settings={settings}
         getFieldError={getFieldError}
       />
-
       <AgentHubSettingsSection
         settings={settings}
         getFieldError={getFieldError}
       />
-
       <McpSettingsSection settings={settings} />
-
       <ConnectorsSettingsSection
         settings={settings}
         getFieldError={getFieldError}
       />
-
       <SecuritySettingsSection settings={settings} />
-
-    </div>
-  );
-}
-
-export function SettingsForm() {
-  const rawSettings = useSyncExternalStore(
-    subscribeToSettingsChanges,
-    readSettingsRawSnapshot,
-    readServerSettingsRawSnapshot
-  );
-
-  const settings = useMemo(() => parseSettings(rawSettings), [rawSettings]);
-  const validationResult = validateSettings(settings);
-
-  function getFieldError(field: string) {
-    return validationResult.issues.find((issue) => issue.field === field)
-      ?.message;
-  }
-
-  return (
-    <div className="space-y-6">
-      <ValidationSummary issues={validationResult.issues} />
-
-      <AppearanceSettingsSection settings={settings} />
-
-      <LanguageSettingsSection settings={settings} />
-
-      <AiProviderSettingsSection
-        settings={settings}
-        getFieldError={getFieldError}
-      />
-
-      <AgentHubSettingsSection
-        settings={settings}
-        getFieldError={getFieldError}
-      />
-
-      <McpSettingsSection settings={settings} />
-
-      <ConnectorsSettingsSection
-        settings={settings}
-        getFieldError={getFieldError}
-      />
-
-      <SettingsSection
-        id="security"
-        eyebrow="Security"
-        title="Políticas de seguridad"
-        description="Controles mínimos para impedir ejecución peligrosa sin autorización."
-      >
-        <div className="grid gap-4 lg:grid-cols-3">
-          <ToggleField
-            label="Aprobación humana"
-            description="Requerida antes de ejecutar acciones sensibles."
-            checked={settings.requireHumanApproval}
-            onChange={(requireHumanApproval) =>
-              updateSettings({ requireHumanApproval })
-            }
-          />
-          <ToggleField
-            label="Sandbox"
-            description="Ejecutar agentes y scanners en entorno aislado."
-            checked={settings.sandboxEnabled}
-            onChange={(sandboxEnabled) => updateSettings({ sandboxEnabled })}
-          />
-          <ToggleField
-            label="Audit logs"
-            description="Registrar acciones relevantes para trazabilidad."
-            checked={settings.auditLogsEnabled}
-            onChange={(auditLogsEnabled) =>
-              updateSettings({ auditLogsEnabled })
-            }
-          />
-        </div>
-      </SettingsSection>
-
-      <section className="rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
-        <p className="text-sm font-medium text-amber-200">
-          Persistencia temporal
-        </p>
-        <p className="mt-2 text-xs leading-5 text-slate-400">
-          La configuración actual se guarda en localStorage. No usar para
-          secretos reales, tokens ni credenciales.
-        </p>
-      </section>
     </div>
   );
 }
