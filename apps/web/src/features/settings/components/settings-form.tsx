@@ -27,12 +27,39 @@ import { SettingsSection } from "./settings-section";
 import { TextField } from "./text-field";
 import { ToggleField } from "./toggle-field";
 
+type ValidationIssueView = {
+  field: string;
+  message: string;
+};
+
 function FieldError({ message }: { message?: string }) {
   if (!message) {
     return null;
   }
 
   return <p className="mt-2 text-xs text-amber-200">{message}</p>;
+}
+
+function ValidationSummary({ issues }: { issues: ValidationIssueView[] }) {
+  if (issues.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
+      <p className="text-sm font-medium text-amber-200">
+        Configuración con advertencias
+      </p>
+      <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-5 text-slate-400">
+        {issues.map((issue) => (
+          <li key={issue.field}>
+            <span className="text-slate-300">{issue.field}</span>:{" "}
+            {issue.message}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 }
 
 export function SettingsForm() {
@@ -52,21 +79,7 @@ export function SettingsForm() {
 
   return (
     <div className="space-y-6">
-      {!validationResult.valid ? (
-        <div className="rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
-          <p className="text-sm font-medium text-amber-200">
-            Configuración con advertencias
-          </p>
-          <ul className="mt-2 list-inside list-disc space-y-1 text-xs leading-5 text-slate-400">
-            {validationResult.issues.map((issue) => (
-              <li key={issue.field}>
-                <span className="text-slate-300">{issue.field}</span>:{" "}
-                {issue.message}
-              </li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      <ValidationSummary issues={validationResult.issues} />
 
       <SettingsSection
         id="appearance"
