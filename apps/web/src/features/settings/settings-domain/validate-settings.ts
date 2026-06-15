@@ -1,8 +1,8 @@
 import type { CyberMapSettings } from "../settings-types";
 import {
   validateSettings,
-  type SettingsValidationResult,
 } from "../settings-validation";
+import type { SettingsValidationResult } from "../settings-validation.types";
 
 /**
  * Valida el modelo de settings contra reglas semánticas del dominio.

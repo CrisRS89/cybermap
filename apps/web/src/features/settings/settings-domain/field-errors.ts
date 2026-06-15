@@ -1,4 +1,4 @@
-import type { SettingsValidationIssue } from "../settings-validation";
+import type { SettingsValidationIssue } from "../settings-validation.types";
 
 /**
  * Obtiene el mensaje de error asociado a un campo.

@@ -1,4 +1,4 @@
-import type { SettingsValidationIssue } from "../../settings-validation";
+import type { SettingsValidationIssue } from "../../settings-validation.types";
 
 type ValidationSummaryProps = {
   issues: SettingsValidationIssue[];
