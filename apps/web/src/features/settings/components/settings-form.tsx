@@ -27,6 +27,14 @@ import { SettingsSection } from "./settings-section";
 import { TextField } from "./text-field";
 import { ToggleField } from "./toggle-field";
 
+function FieldError({ message }: { message?: string }) {
+  if (!message) {
+    return null;
+  }
+
+  return <p className="mt-2 text-xs text-amber-200">{message}</p>;
+}
+
 export function SettingsForm() {
   const rawSettings = useSyncExternalStore(
     subscribeToSettingsChanges,
@@ -136,11 +144,7 @@ export function SettingsForm() {
               placeholder="0.2"
               onChange={(aiTemperature) => updateSettings({ aiTemperature })}
             />
-            {getFieldError("aiTemperature") ? (
-              <p className="mt-2 text-xs text-amber-200">
-                {getFieldError("aiTemperature")}
-              </p>
-            ) : null}
+            <FieldError message={getFieldError("aiTemperature")} />
           </div>
           <div>
             <TextField
@@ -149,11 +153,7 @@ export function SettingsForm() {
               placeholder="2048"
               onChange={(aiMaxTokens) => updateSettings({ aiMaxTokens })}
             />
-            {getFieldError("aiMaxTokens") ? (
-              <p className="mt-2 text-xs text-amber-200">
-                {getFieldError("aiMaxTokens")}
-              </p>
-            ) : null}
+            <FieldError message={getFieldError("aiMaxTokens")} />
           </div>
           <SelectField
             label="Privacy mode"
@@ -230,11 +230,7 @@ export function SettingsForm() {
                 updateSettings({ agentTimeoutSeconds })
               }
             />
-            {getFieldError("agentTimeoutSeconds") ? (
-              <p className="mt-2 text-xs text-amber-200">
-                {getFieldError("agentTimeoutSeconds")}
-              </p>
-            ) : null}
+            <FieldError message={getFieldError("agentTimeoutSeconds")} />
           </div>
           <TextField
             label="Comando"
@@ -399,11 +395,9 @@ export function SettingsForm() {
                 updateSettings({ connectorSyncIntervalMinutes })
               }
             />
-            {getFieldError("connectorSyncIntervalMinutes") ? (
-              <p className="mt-2 text-xs text-amber-200">
-                {getFieldError("connectorSyncIntervalMinutes")}
-              </p>
-            ) : null}
+            <FieldError
+              message={getFieldError("connectorSyncIntervalMinutes")}
+            />
           </div>
           <TextField
             label="Base URL"
