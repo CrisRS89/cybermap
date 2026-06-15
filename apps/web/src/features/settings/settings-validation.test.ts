@@ -108,3 +108,25 @@ describe("settings-validation", () => {
     ]);
   });
 });
+
+import { NUMERIC_SETTING_VALIDATION_RULES } from "./settings-schema";
+
+describe("settings validation schema integration", () => {
+  it("validates every numeric schema rule", () => {
+    for (const rule of NUMERIC_SETTING_VALIDATION_RULES) {
+      const validationResult = validateSettings({
+        ...defaultSettings,
+        [rule.field]: String(rule.min - 1),
+      });
+
+      expect(validationResult.valid).toBe(false);
+      expect(validationResult.issues).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            field: rule.field,
+          }),
+        ])
+      );
+    }
+  });
+});
