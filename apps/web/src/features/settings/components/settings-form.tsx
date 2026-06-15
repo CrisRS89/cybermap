@@ -1,9 +1,12 @@
 "use client";
 
 import { useMemo, useSyncExternalStore } from "react";
-import { validateSettings } from "../settings-validation";
 import {
-  parseSettings,
+  getSettingsFieldError,
+  parseCyberMapSettings,
+  validateCyberMapSettings,
+} from "../settings-domain";
+import {
   readServerSettingsRawSnapshot,
   readSettingsRawSnapshot,
   subscribeToSettingsChanges,
@@ -24,12 +27,14 @@ export function SettingsForm() {
     readServerSettingsRawSnapshot
   );
 
-  const settings = useMemo(() => parseSettings(rawSettings), [rawSettings]);
-  const validationResult = validateSettings(settings);
+  const settings = useMemo(
+    () => parseCyberMapSettings(rawSettings),
+    [rawSettings]
+  );
+  const validationResult = validateCyberMapSettings(settings);
 
   function getFieldError(field: string) {
-    return validationResult.issues.find((issue) => issue.field === field)
-      ?.message;
+    return getSettingsFieldError(validationResult.issues, field);
   }
 
   return (
