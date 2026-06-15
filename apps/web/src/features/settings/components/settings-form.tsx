@@ -8,14 +8,14 @@ import {
   readSettingsRawSnapshot,
   subscribeToSettingsChanges,
 } from "../settings-storage";
-import { AgentHubSettingsSection } from "./agent-hub-settings-section";
-import { AiProviderSettingsSection } from "./ai-provider-settings-section";
-import { AppearanceSettingsSection } from "./appearance-settings-section";
-import { ConnectorsSettingsSection } from "./connectors-settings-section";
-import { LanguageSettingsSection } from "./language-settings-section";
-import { McpSettingsSection } from "./mcp-settings-section";
-import { SecuritySettingsSection } from "./security-settings-section";
-import { ValidationSummary } from "./validation-summary";
+import { AgentHubSettingsSection } from "./sections/agent-hub-settings-section";
+import { AiProviderSettingsSection } from "./sections/ai-provider-settings-section";
+import { AppearanceSettingsSection } from "./sections/appearance-settings-section";
+import { ConnectorsSettingsSection } from "./sections/connectors-settings-section";
+import { LanguageSettingsSection } from "./sections/language-settings-section";
+import { McpSettingsSection } from "./sections/mcp-settings-section";
+import { SecuritySettingsSection } from "./sections/security-settings-section";
+import { ValidationSummary } from "./validation/validation-summary";
 
 export function SettingsForm() {
   const rawSettings = useSyncExternalStore(

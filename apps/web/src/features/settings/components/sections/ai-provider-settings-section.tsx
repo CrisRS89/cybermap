@@ -2,12 +2,12 @@ import {
   AI_PRIVACY_MODES,
   AI_PROVIDERS,
   THINKING_MODES,
-} from "../settings-options";
-import { updateSettings } from "../settings-storage";
-import type { CyberMapSettings } from "../settings-types";
-import { SelectField } from "./select-field";
+} from "../../settings-options";
+import { updateSettings } from "../../settings-storage";
+import type { CyberMapSettings } from "../../settings-types";
+import { SelectField } from "../fields/select-field";
 import { SettingsSection } from "./settings-section";
-import { TextField } from "./text-field";
+import { TextField } from "../fields/text-field";
 
 type AiProviderSettingsSectionProps = {
   settings: CyberMapSettings;

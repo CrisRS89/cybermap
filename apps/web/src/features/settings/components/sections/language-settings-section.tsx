@@ -1,7 +1,7 @@
-import { LANGUAGES } from "../settings-options";
-import { updateSettings } from "../settings-storage";
-import type { CyberMapSettings } from "../settings-types";
-import { SelectField } from "./select-field";
+import { LANGUAGES } from "../../settings-options";
+import { updateSettings } from "../../settings-storage";
+import type { CyberMapSettings } from "../../settings-types";
+import { SelectField } from "../fields/select-field";
 import { SettingsSection } from "./settings-section";
 
 type LanguageSettingsSectionProps = {

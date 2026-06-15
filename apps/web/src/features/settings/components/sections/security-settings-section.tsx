@@ -1,7 +1,7 @@
-import { updateSettings } from "../settings-storage";
-import type { CyberMapSettings } from "../settings-types";
+import { updateSettings } from "../../settings-storage";
+import type { CyberMapSettings } from "../../settings-types";
 import { SettingsSection } from "./settings-section";
-import { ToggleField } from "./toggle-field";
+import { ToggleField } from "../fields/toggle-field";
 
 type SecuritySettingsSectionProps = {
   settings: CyberMapSettings;

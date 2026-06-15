@@ -1,13 +1,13 @@
 import {
   CONNECTOR_AUTH_MODES,
   CONNECTOR_PRESETS,
-} from "../settings-options";
-import { updateSettings } from "../settings-storage";
-import type { CyberMapSettings } from "../settings-types";
-import { SelectField } from "./select-field";
+} from "../../settings-options";
+import { updateSettings } from "../../settings-storage";
+import type { CyberMapSettings } from "../../settings-types";
+import { SelectField } from "../fields/select-field";
 import { SettingsSection } from "./settings-section";
-import { TextField } from "./text-field";
-import { ToggleField } from "./toggle-field";
+import { TextField } from "../fields/text-field";
+import { ToggleField } from "../fields/toggle-field";
 
 type ConnectorsSettingsSectionProps = {
   settings: CyberMapSettings;
