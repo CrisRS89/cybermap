@@ -118,3 +118,17 @@ export const SETTINGS_SECTION_SCHEMAS = [
       "Controles globales de ejecución segura. Los defaults priorizan aprobación humana, sandbox y auditoría.",
   },
 ] satisfies SettingsSectionSchema[];
+
+export function getSettingsSectionSchema(
+  sectionId: SettingsSectionId
+): SettingsSectionSchema {
+  const section = SETTINGS_SECTION_SCHEMAS.find(
+    (candidate) => candidate.id === sectionId
+  );
+
+  if (!section) {
+    throw new Error(`Unknown settings section: ${sectionId}`);
+  }
+
+  return section;
+}

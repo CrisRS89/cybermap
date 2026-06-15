@@ -64,3 +64,17 @@ describe("settings section schema", () => {
     }
   });
 });
+
+import { getSettingsSectionSchema } from "./settings-schema";
+
+describe("settings section schema lookup", () => {
+  it("returns section metadata by id", () => {
+    expect(getSettingsSectionSchema("language")).toEqual(
+      expect.objectContaining({
+        id: "language",
+        eyebrow: "Language",
+        title: "Idioma",
+      })
+    );
+  });
+});
