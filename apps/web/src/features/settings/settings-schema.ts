@@ -73,7 +73,7 @@ export const SETTINGS_SECTION_SCHEMAS = [
     id: "appearance",
     eyebrow: "Appearance",
     title: "Apariencia",
-    description: "Tema, fondo y experiencia visual de CyberMap.",
+    description: "Configura tema visual y fondo del dashboard. En esta fase la persistencia es local.",
   },
   {
     id: "language",

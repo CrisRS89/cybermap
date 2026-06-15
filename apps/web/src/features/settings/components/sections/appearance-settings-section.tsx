@@ -1,8 +1,11 @@
+import { getSettingsSectionSchema } from "../../settings-schema";
 import { BACKGROUNDS, THEMES } from "../../settings-options";
 import { updateSettings } from "../../settings-storage";
 import type { CyberMapSettings } from "../../settings-types";
 import { SelectField } from "../fields/select-field";
 import { SettingsSection } from "./settings-section";
+
+const sectionSchema = getSettingsSectionSchema("appearance");
 
 type AppearanceSettingsSectionProps = {
   settings: CyberMapSettings;
@@ -13,10 +16,10 @@ export function AppearanceSettingsSection({
 }: AppearanceSettingsSectionProps) {
   return (
     <SettingsSection
-      id="appearance"
-      eyebrow="Appearance"
-      title="Apariencia"
-      description="Configura tema visual y fondo del dashboard. En esta fase la persistencia es local."
+      id={sectionSchema.id}
+      eyebrow={sectionSchema.eyebrow}
+      title={sectionSchema.title}
+      description={sectionSchema.description}
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <SelectField
