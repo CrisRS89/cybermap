@@ -34,6 +34,12 @@ export const THINKING_MODES = [
   "Sin razonamiento extendido",
 ] as const;
 
+export const AI_PRIVACY_MODES = [
+  "Cloud",
+  "Local only",
+  "Redacted context",
+] as const;
+
 export const AGENT_PRESETS = [
   "Aider",
   "Cline",
@@ -58,7 +64,12 @@ export const defaultSettings: CyberMapSettings = {
   language: LANGUAGES[0],
   aiProvider: AI_PROVIDERS[0],
   aiModel: "gpt-4.1-mini",
+  aiBaseUrl: "",
   thinkingMode: THINKING_MODES[1],
+  aiTemperature: "0.2",
+  aiMaxTokens: "2048",
+  aiPrivacyMode: AI_PRIVACY_MODES[0],
+  aiApiKeyConfigured: false,
   agentPreset: AGENT_PRESETS[0],
   mcpTransport: MCP_TRANSPORTS[0],
   connectorPreset: CONNECTOR_PRESETS[0],

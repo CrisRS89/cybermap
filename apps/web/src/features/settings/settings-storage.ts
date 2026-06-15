@@ -42,7 +42,17 @@ export function parseSettings(rawSettings: string): CyberMapSettings {
       language: parsedSettings.language ?? defaultSettings.language,
       aiProvider: parsedSettings.aiProvider ?? defaultSettings.aiProvider,
       aiModel: parsedSettings.aiModel ?? defaultSettings.aiModel,
+      aiBaseUrl: parsedSettings.aiBaseUrl ?? defaultSettings.aiBaseUrl,
       thinkingMode: parsedSettings.thinkingMode ?? defaultSettings.thinkingMode,
+      aiTemperature:
+        parsedSettings.aiTemperature ?? defaultSettings.aiTemperature,
+      aiMaxTokens: parsedSettings.aiMaxTokens ?? defaultSettings.aiMaxTokens,
+      aiPrivacyMode:
+        parsedSettings.aiPrivacyMode ?? defaultSettings.aiPrivacyMode,
+      aiApiKeyConfigured: parseBoolean(
+        parsedSettings.aiApiKeyConfigured,
+        defaultSettings.aiApiKeyConfigured
+      ),
       agentPreset: parsedSettings.agentPreset ?? defaultSettings.agentPreset,
       mcpTransport:
         parsedSettings.mcpTransport ?? defaultSettings.mcpTransport,
