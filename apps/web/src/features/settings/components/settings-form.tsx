@@ -6,12 +6,10 @@ import {
   AGENT_PRESETS,
   AI_PRIVACY_MODES,
   AI_PROVIDERS,
-  BACKGROUNDS,
   CONNECTOR_AUTH_MODES,
   CONNECTOR_PRESETS,
   LANGUAGES,
   MCP_TRANSPORTS,
-  THEMES,
   THINKING_MODES,
 } from "../settings-options";
 import {
@@ -22,6 +20,7 @@ import {
   updateSettings,
 } from "../settings-storage";
 import { validateSettings } from "../settings-validation";
+import { AppearanceSettingsSection } from "./appearance-settings-section";
 import { SelectField } from "./select-field";
 import { SettingsSection } from "./settings-section";
 import { TextField } from "./text-field";
@@ -81,27 +80,7 @@ export function SettingsForm() {
     <div className="space-y-6">
       <ValidationSummary issues={validationResult.issues} />
 
-      <SettingsSection
-        id="appearance"
-        eyebrow="Appearance"
-        title="Apariencia"
-        description="Configura tema visual y fondo del dashboard. En esta fase la persistencia es local."
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <SelectField
-            label="Tema"
-            value={settings.theme}
-            options={THEMES}
-            onChange={(theme) => updateSettings({ theme })}
-          />
-          <SelectField
-            label="Fondo"
-            value={settings.background}
-            options={BACKGROUNDS}
-            onChange={(background) => updateSettings({ background })}
-          />
-        </div>
-      </SettingsSection>
+      <AppearanceSettingsSection settings={settings} />
 
       <SettingsSection
         id="language"
