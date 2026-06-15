@@ -1,10 +1,13 @@
+import { getSettingsSectionSchema } from "../../settings-schema";
 import { MCP_TRANSPORTS } from "../../settings-options";
 import { updateSettings } from "../../settings-storage";
 import type { CyberMapSettings } from "../../settings-types";
 import { SelectField } from "../fields/select-field";
-import { SettingsSection } from "./settings-section";
 import { TextField } from "../fields/text-field";
 import { ToggleField } from "../fields/toggle-field";
+import { SettingsSection } from "./settings-section";
+
+const sectionSchema = getSettingsSectionSchema("mcp");
 
 type McpSettingsSectionProps = {
   settings: CyberMapSettings;
@@ -13,10 +16,10 @@ type McpSettingsSectionProps = {
 export function McpSettingsSection({ settings }: McpSettingsSectionProps) {
   return (
     <SettingsSection
-      id="mcp"
-      eyebrow="MCP"
-      title="MCP Servers"
-      description="Configuración visual inicial para servidores MCP. No se inicia ningún proceso ni conexión desde frontend."
+      id={sectionSchema.id}
+      eyebrow={sectionSchema.eyebrow}
+      title={sectionSchema.title}
+      description={sectionSchema.description}
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <TextField
