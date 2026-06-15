@@ -9,7 +9,7 @@ import { metricCards } from "@/data/dashboard-data";
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-[radial-gradient(circle_at_top_left,#14313a_0,#091116_38%,#05080c_100%)] text-slate-100">
+    <main className="min-h-screen text-slate-100">
       <MobileNav />
 
       <div className="grid min-h-screen lg:grid-cols-[280px_1fr]">

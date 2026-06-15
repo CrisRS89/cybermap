@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AppThemeShell } from "@/components/layout/app-theme-shell";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es">
-      <body>{children}</body>
+      <body>
+        <AppThemeShell>{children}</AppThemeShell>
+      </body>
     </html>
   );
 }
