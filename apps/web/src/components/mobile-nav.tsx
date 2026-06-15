@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigationItems } from "@/data/dashboard-data";
@@ -20,15 +21,26 @@ export function MobileNav() {
       <div className="mb-3 flex items-center justify-between gap-4">
         <Link
           href="/"
-          className="rounded-2xl border border-transparent p-1 transition hover:border-cyan-400/20 hover:bg-cyan-400/5"
+          className="flex items-center gap-3 rounded-2xl border border-transparent p-1 transition hover:border-cyan-400/20 hover:bg-cyan-400/5"
           aria-label="Volver al Dashboard"
         >
-          <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/70">
-            CyberMap
-          </p>
-          <h1 className="text-lg font-semibold text-slate-100">
-            Security Ops
-          </h1>
+          <Image
+            src="/brand/cybermap-shield.png"
+            alt="CyberMap logo"
+            width={38}
+            height={52}
+            priority
+            className="h-10 w-auto drop-shadow-[0_0_14px_rgba(34,211,238,0.35)]"
+          />
+
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-cyan-300/70">
+              CyberMap
+            </p>
+            <h1 className="text-lg font-semibold text-slate-100">
+              Security Ops
+            </h1>
+          </div>
         </Link>
 
         <span className="shrink-0 rounded-full border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-200">
