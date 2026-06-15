@@ -1,5 +1,5 @@
 export const navigationItems = [
-  { label: "Dashboard", href: "/", status: "active" },
+  { label: "Dashboard", href: "/", status: "ready" },
   { label: "Exploration", href: "/exploration", status: "ready" },
   { label: "Blue Team", href: "/blue-team", status: "ready" },
   { label: "Red Team", href: "/red-team", status: "locked" },

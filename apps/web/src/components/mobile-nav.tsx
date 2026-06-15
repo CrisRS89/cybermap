@@ -1,7 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { navigationItems } from "@/data/dashboard-data";
 
+function isNavigationItemActive(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname.startsWith(href);
+}
+
 export function MobileNav() {
+  const pathname = usePathname();
+
   return (
     <nav className="border-b border-cyan-400/10 bg-slate-950/80 px-4 py-4 backdrop-blur lg:hidden">
       <div className="mb-3 flex items-center justify-between">
@@ -20,19 +33,23 @@ export function MobileNav() {
       </div>
 
       <div className="flex gap-2 overflow-x-auto pb-1">
-        {navigationItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`shrink-0 rounded-full border px-3 py-2 text-xs transition ${
-              item.status === "active"
-                ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
-                : "border-slate-800 bg-slate-900/40 text-slate-400"
-            }`}
-          >
-            {item.label}
-          </Link>
-        ))}
+        {navigationItems.map((item) => {
+          const isActive = isNavigationItemActive(pathname, item.href);
+
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`shrink-0 rounded-full border px-3 py-2 text-xs transition ${
+                isActive
+                  ? "border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
+                  : "border-slate-800 bg-slate-900/40 text-slate-400"
+              }`}
+            >
+              {item.label}
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

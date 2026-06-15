@@ -1,7 +1,20 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { navigationItems } from "@/data/dashboard-data";
 
+function isNavigationItemActive(pathname: string, href: string) {
+  if (href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname.startsWith(href);
+}
+
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <aside className="hidden border-r border-cyan-400/10 bg-slate-950/70 px-5 py-6 backdrop-blur lg:block">
       <div className="mb-10">
@@ -17,22 +30,26 @@ export function AppSidebar() {
       </div>
 
       <nav className="space-y-2">
-        {navigationItems.map((item) => (
-          <Link
-            key={item.label}
-            href={item.href}
-            className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition ${
-              item.status === "active"
-                ? "border border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
-                : "border border-transparent text-slate-400 hover:bg-slate-900 hover:text-slate-100"
-            }`}
-          >
-            <span>{item.label}</span>
-            <span className="text-xs uppercase text-slate-500">
-              {item.status}
-            </span>
-          </Link>
-        ))}
+        {navigationItems.map((item) => {
+          const isActive = isNavigationItemActive(pathname, item.href);
+
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`flex w-full items-center justify-between rounded-xl px-4 py-3 text-left text-sm transition ${
+                isActive
+                  ? "border border-cyan-400/30 bg-cyan-400/10 text-cyan-100"
+                  : "border border-transparent text-slate-400 hover:bg-slate-900 hover:text-slate-100"
+              }`}
+            >
+              <span>{item.label}</span>
+              <span className="text-xs uppercase text-slate-500">
+                {isActive ? "active" : item.status}
+              </span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="mt-10 rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
