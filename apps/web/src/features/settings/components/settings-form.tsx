@@ -17,23 +17,13 @@ import { AppearanceSettingsSection } from "./appearance-settings-section";
 import { ConnectorsSettingsSection } from "./connectors-settings-section";
 import { LanguageSettingsSection } from "./language-settings-section";
 import { McpSettingsSection } from "./mcp-settings-section";
-import { SelectField } from "./select-field";
 import { SettingsSection } from "./settings-section";
-import { TextField } from "./text-field";
 import { ToggleField } from "./toggle-field";
 
 type ValidationIssueView = {
   field: string;
   message: string;
 };
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-
-  return <p className="mt-2 text-xs text-amber-200">{message}</p>;
-}
 
 function ValidationSummary({ issues }: { issues: ValidationIssueView[] }) {
   if (issues.length === 0) {
