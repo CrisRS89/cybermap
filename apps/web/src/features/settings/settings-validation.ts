@@ -1,3 +1,4 @@
+import { NUMERIC_SETTING_VALIDATION_RULES } from "./settings-schema";
 import type { CyberMapSettings } from "./settings-types";
 import type {
   SettingsValidationIssue,
@@ -55,22 +56,16 @@ export function validateSettings(
 ): SettingsValidationResult {
   const issues: SettingsValidationIssue[] = [];
 
-  validateNumberRange(issues, "aiTemperature", settings.aiTemperature, 0, 2);
-  validateIntegerRange(issues, "aiMaxTokens", settings.aiMaxTokens, 1, 128000);
-  validateIntegerRange(
-    issues,
-    "agentTimeoutSeconds",
-    settings.agentTimeoutSeconds,
-    1,
-    3600
-  );
-  validateIntegerRange(
-    issues,
-    "connectorSyncIntervalMinutes",
-    settings.connectorSyncIntervalMinutes,
-    1,
-    1440
-  );
+  for (const rule of NUMERIC_SETTING_VALIDATION_RULES) {
+    const value = settings[rule.field];
+
+    if (rule.kind === "number") {
+      validateNumberRange(issues, rule.field, value, rule.min, rule.max);
+      continue;
+    }
+
+    validateIntegerRange(issues, rule.field, value, rule.min, rule.max);
+  }
 
   return {
     valid: issues.length === 0,
