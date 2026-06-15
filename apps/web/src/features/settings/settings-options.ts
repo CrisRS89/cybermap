@@ -47,6 +47,14 @@ export const AGENT_PRESETS = [
   "Custom CLI",
 ] as const;
 
+export const AGENT_INTEGRATION_TYPES = [
+  "cli",
+  "api",
+  "mcp",
+  "ide_bridge",
+  "framework",
+] as const;
+
 export const MCP_TRANSPORTS = ["stdio", "http"] as const;
 
 export const CONNECTOR_PRESETS = [
@@ -71,6 +79,13 @@ export const defaultSettings: CyberMapSettings = {
   aiPrivacyMode: AI_PRIVACY_MODES[0],
   aiApiKeyConfigured: false,
   agentPreset: AGENT_PRESETS[0],
+  agentIntegrationType: AGENT_INTEGRATION_TYPES[0],
+  agentCommand: "",
+  agentWorkingDirectory: "",
+  agentTimeoutSeconds: "120",
+  agentRequiresApproval: true,
+  agentSandboxEnabled: true,
+  agentNetworkAccess: false,
   mcpTransport: MCP_TRANSPORTS[0],
   connectorPreset: CONNECTOR_PRESETS[0],
   requireHumanApproval: true,

@@ -11,6 +11,13 @@ export type CyberMapSettings = {
   aiPrivacyMode: string;
   aiApiKeyConfigured: boolean;
   agentPreset: string;
+  agentIntegrationType: string;
+  agentCommand: string;
+  agentWorkingDirectory: string;
+  agentTimeoutSeconds: string;
+  agentRequiresApproval: boolean;
+  agentSandboxEnabled: boolean;
+  agentNetworkAccess: boolean;
   mcpTransport: string;
   connectorPreset: string;
   requireHumanApproval: boolean;

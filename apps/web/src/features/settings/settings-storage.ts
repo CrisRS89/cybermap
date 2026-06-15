@@ -54,6 +54,28 @@ export function parseSettings(rawSettings: string): CyberMapSettings {
         defaultSettings.aiApiKeyConfigured
       ),
       agentPreset: parsedSettings.agentPreset ?? defaultSettings.agentPreset,
+      agentIntegrationType:
+        parsedSettings.agentIntegrationType ??
+        defaultSettings.agentIntegrationType,
+      agentCommand: parsedSettings.agentCommand ?? defaultSettings.agentCommand,
+      agentWorkingDirectory:
+        parsedSettings.agentWorkingDirectory ??
+        defaultSettings.agentWorkingDirectory,
+      agentTimeoutSeconds:
+        parsedSettings.agentTimeoutSeconds ??
+        defaultSettings.agentTimeoutSeconds,
+      agentRequiresApproval: parseBoolean(
+        parsedSettings.agentRequiresApproval,
+        defaultSettings.agentRequiresApproval
+      ),
+      agentSandboxEnabled: parseBoolean(
+        parsedSettings.agentSandboxEnabled,
+        defaultSettings.agentSandboxEnabled
+      ),
+      agentNetworkAccess: parseBoolean(
+        parsedSettings.agentNetworkAccess,
+        defaultSettings.agentNetworkAccess
+      ),
       mcpTransport:
         parsedSettings.mcpTransport ?? defaultSettings.mcpTransport,
       connectorPreset:
