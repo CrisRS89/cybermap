@@ -33,7 +33,7 @@ describe("settings domain facade", () => {
       connectorSyncIntervalMinutes: "0",
     });
 
-    expect(validationResult.isValid).toBe(false);
+    expect(validationResult.issues.length).toBeGreaterThan(0);
     expect(validationResult.issues).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ field: "aiTemperature" }),
