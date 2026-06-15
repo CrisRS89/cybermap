@@ -112,6 +112,34 @@ describe("settings-storage", () => {
     });
   });
 
+  it("parses valid Connectors settings", () => {
+    const rawSettings = JSON.stringify({
+      ...defaultSettings,
+      connectorEnabled: true,
+      connectorPreset: "Wazuh",
+      connectorBaseUrl: "https://wazuh.local",
+      connectorAuthMode: "bearer_token",
+      connectorSecretConfigured: true,
+      connectorSyncIntervalMinutes: "15",
+      connectorIngestFindings: true,
+      connectorIngestAssets: false,
+      connectorRequiresApproval: true,
+    });
+
+    expect(parseSettings(rawSettings)).toEqual({
+      ...defaultSettings,
+      connectorEnabled: true,
+      connectorPreset: "Wazuh",
+      connectorBaseUrl: "https://wazuh.local",
+      connectorAuthMode: "bearer_token",
+      connectorSecretConfigured: true,
+      connectorSyncIntervalMinutes: "15",
+      connectorIngestFindings: true,
+      connectorIngestAssets: false,
+      connectorRequiresApproval: true,
+    });
+  });
+
   it("returns defaults when JSON is corrupt", () => {
     expect(parseSettings("{invalid-json")).toEqual(defaultSettings);
   });
@@ -138,6 +166,11 @@ describe("settings-storage", () => {
       agentNetworkAccess: "false",
       mcpEnabled: "true",
       mcpRequiresApproval: "yes",
+      connectorEnabled: "true",
+      connectorSecretConfigured: "yes",
+      connectorIngestFindings: "true",
+      connectorIngestAssets: "false",
+      connectorRequiresApproval: "yes",
     });
 
     expect(parseSettings(rawSettings)).toEqual(defaultSettings);
@@ -160,6 +193,16 @@ describe("settings-storage", () => {
     expect(defaultSettings.mcpArgs).toBe("");
     expect(defaultSettings.mcpUrl).toBe("");
     expect(defaultSettings.mcpAllowedTools).toBe("");
+  });
+
+  it("uses secure Connectors defaults", () => {
+    expect(defaultSettings.connectorEnabled).toBe(false);
+    expect(defaultSettings.connectorSecretConfigured).toBe(false);
+    expect(defaultSettings.connectorRequiresApproval).toBe(true);
+    expect(defaultSettings.connectorBaseUrl).toBe("");
+    expect(defaultSettings.connectorSyncIntervalMinutes).toBe("60");
+    expect(defaultSettings.connectorIngestFindings).toBe(true);
+    expect(defaultSettings.connectorIngestAssets).toBe(true);
   });
 
   it("updates settings with a partial merge", () => {
@@ -274,10 +317,45 @@ describe("settings-storage", () => {
       });
   });
 
+  it("updates Connectors settings with a partial merge", () => {
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        ...defaultSettings,
+        connectorEnabled: false,
+        connectorPreset: "Nmap",
+        connectorSecretConfigured: false,
+      })
+    );
+
+    updateSettings({
+      connectorEnabled: true,
+      connectorPreset: "TheHive",
+      connectorBaseUrl: "https://thehive.local",
+      connectorAuthMode: "api_key",
+      connectorSyncIntervalMinutes: "30",
+      connectorSecretConfigured: true,
+    });
+
+    expect(JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? "{}"))
+      .toEqual({
+        ...defaultSettings,
+        connectorEnabled: true,
+        connectorPreset: "TheHive",
+        connectorBaseUrl: "https://thehive.local",
+        connectorAuthMode: "api_key",
+        connectorSyncIntervalMinutes: "30",
+        connectorSecretConfigured: true,
+      });
+  });
+
   it("does not define or persist a raw API key field in defaults", () => {
     expect(defaultSettings).not.toHaveProperty("apiKey");
     expect(defaultSettings).not.toHaveProperty("aiApiKey");
     expect(defaultSettings).not.toHaveProperty("aiApiKeyValue");
+    expect(defaultSettings).not.toHaveProperty("connectorSecret");
+    expect(defaultSettings).not.toHaveProperty("connectorApiKey");
+    expect(defaultSettings).not.toHaveProperty("connectorToken");
   });
 
   it("dispatches a settings change event after update", () => {
