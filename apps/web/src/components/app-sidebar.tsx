@@ -17,7 +17,11 @@ export function AppSidebar() {
 
   return (
     <aside className="hidden border-r border-cyan-400/10 bg-slate-950/70 px-5 py-6 backdrop-blur lg:block">
-      <div className="mb-10">
+      <Link
+        href="/"
+        className="mb-10 block rounded-2xl border border-transparent p-2 transition hover:border-cyan-400/20 hover:bg-cyan-400/5"
+        aria-label="Volver al Dashboard"
+      >
         <p className="text-xs uppercase tracking-[0.35em] text-cyan-300/70">
           CyberMap
         </p>
@@ -27,7 +31,7 @@ export function AppSidebar() {
         <p className="mt-2 text-sm text-slate-400">
           Plataforma modular de ciberseguridad asistida por IA.
         </p>
-      </div>
+      </Link>
 
       <nav className="space-y-2">
         {navigationItems.map((item) => {
