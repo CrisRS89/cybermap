@@ -40,3 +40,27 @@ describe("settings schema", () => {
     ]);
   });
 });
+
+import { SETTINGS_SECTION_SCHEMAS } from "./settings-schema";
+
+describe("settings section schema", () => {
+  it("defines the current settings section order", () => {
+    expect(SETTINGS_SECTION_SCHEMAS.map((section) => section.id)).toEqual([
+      "appearance",
+      "language",
+      "ai-providers",
+      "agents",
+      "mcp",
+      "connectors",
+      "security",
+    ]);
+  });
+
+  it("defines user-facing metadata for every section", () => {
+    for (const section of SETTINGS_SECTION_SCHEMAS) {
+      expect(section.eyebrow.length).toBeGreaterThan(0);
+      expect(section.title.length).toBeGreaterThan(0);
+      expect(section.description.length).toBeGreaterThan(0);
+    }
+  });
+});
