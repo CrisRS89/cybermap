@@ -86,6 +86,32 @@ describe("settings-storage", () => {
     });
   });
 
+  it("parses valid MCP settings", () => {
+    const rawSettings = JSON.stringify({
+      ...defaultSettings,
+      mcpEnabled: true,
+      mcpServerName: "local-tools",
+      mcpTransport: "stdio",
+      mcpCommand: "python server.py",
+      mcpArgs: "--workspace /tmp/cybermap",
+      mcpUrl: "http://localhost:8787",
+      mcpAllowedTools: "scan.read, findings.write",
+      mcpRequiresApproval: true,
+    });
+
+    expect(parseSettings(rawSettings)).toEqual({
+      ...defaultSettings,
+      mcpEnabled: true,
+      mcpServerName: "local-tools",
+      mcpTransport: "stdio",
+      mcpCommand: "python server.py",
+      mcpArgs: "--workspace /tmp/cybermap",
+      mcpUrl: "http://localhost:8787",
+      mcpAllowedTools: "scan.read, findings.write",
+      mcpRequiresApproval: true,
+    });
+  });
+
   it("returns defaults when JSON is corrupt", () => {
     expect(parseSettings("{invalid-json")).toEqual(defaultSettings);
   });
@@ -110,6 +136,8 @@ describe("settings-storage", () => {
       agentRequiresApproval: "yes",
       agentSandboxEnabled: "true",
       agentNetworkAccess: "false",
+      mcpEnabled: "true",
+      mcpRequiresApproval: "yes",
     });
 
     expect(parseSettings(rawSettings)).toEqual(defaultSettings);
@@ -122,6 +150,16 @@ describe("settings-storage", () => {
     expect(defaultSettings.agentCommand).toBe("");
     expect(defaultSettings.agentWorkingDirectory).toBe("");
     expect(defaultSettings.agentTimeoutSeconds).toBe("120");
+  });
+
+  it("uses secure MCP defaults", () => {
+    expect(defaultSettings.mcpEnabled).toBe(false);
+    expect(defaultSettings.mcpRequiresApproval).toBe(true);
+    expect(defaultSettings.mcpServerName).toBe("");
+    expect(defaultSettings.mcpCommand).toBe("");
+    expect(defaultSettings.mcpArgs).toBe("");
+    expect(defaultSettings.mcpUrl).toBe("");
+    expect(defaultSettings.mcpAllowedTools).toBe("");
   });
 
   it("updates settings with a partial merge", () => {
@@ -202,6 +240,37 @@ describe("settings-storage", () => {
         agentWorkingDirectory: "/workspace/project",
         agentTimeoutSeconds: "300",
         agentNetworkAccess: true,
+      });
+  });
+
+  it("updates MCP settings with a partial merge", () => {
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        ...defaultSettings,
+        mcpEnabled: false,
+        mcpServerName: "",
+        mcpTransport: "stdio",
+      })
+    );
+
+    updateSettings({
+      mcpEnabled: true,
+      mcpServerName: "local-tools",
+      mcpCommand: "python server.py",
+      mcpArgs: "--workspace /tmp/cybermap",
+      mcpAllowedTools: "scan.read, findings.write",
+    });
+
+    expect(JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? "{}"))
+      .toEqual({
+        ...defaultSettings,
+        mcpEnabled: true,
+        mcpServerName: "local-tools",
+        mcpTransport: "stdio",
+        mcpCommand: "python server.py",
+        mcpArgs: "--workspace /tmp/cybermap",
+        mcpAllowedTools: "scan.read, findings.write",
       });
   });
 
