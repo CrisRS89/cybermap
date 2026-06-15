@@ -4,6 +4,7 @@ import {
 } from "../../settings-options";
 import { updateSettings } from "../../settings-storage";
 import type { CyberMapSettings } from "../../settings-types";
+import { FieldError } from "../fields/field-error";
 import { SelectField } from "../fields/select-field";
 import { SettingsSection } from "./settings-section";
 import { TextField } from "../fields/text-field";
@@ -13,14 +14,6 @@ type AgentHubSettingsSectionProps = {
   settings: CyberMapSettings;
   getFieldError: (field: string) => string | undefined;
 };
-
-function FieldError({ message }: { message?: string }) {
-  if (!message) {
-    return null;
-  }
-
-  return <p className="mt-2 text-xs text-amber-200">{message}</p>;
-}
 
 export function AgentHubSettingsSection({
   settings,
