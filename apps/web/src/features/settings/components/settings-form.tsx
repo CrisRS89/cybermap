@@ -17,8 +17,8 @@ import { AppearanceSettingsSection } from "./appearance-settings-section";
 import { ConnectorsSettingsSection } from "./connectors-settings-section";
 import { LanguageSettingsSection } from "./language-settings-section";
 import { McpSettingsSection } from "./mcp-settings-section";
+import { SecuritySettingsSection } from "./security-settings-section";
 import { SettingsSection } from "./settings-section";
-import { ToggleField } from "./toggle-field";
 
 type ValidationIssueView = {
   field: string;
@@ -43,6 +43,52 @@ function ValidationSummary({ issues }: { issues: ValidationIssueView[] }) {
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+export function SettingsForm() {
+  const rawSettings = useSyncExternalStore(
+    subscribeToSettingsChanges,
+    readSettingsRawSnapshot,
+    readServerSettingsRawSnapshot
+  );
+
+  const settings = useMemo(() => parseSettings(rawSettings), [rawSettings]);
+  const validationResult = validateSettings(settings);
+
+  function getFieldError(field: string) {
+    return validationResult.issues.find((issue) => issue.field === field)
+      ?.message;
+  }
+
+  return (
+    <div className="space-y-6">
+      <ValidationSummary issues={validationResult.issues} />
+
+      <AppearanceSettingsSection settings={settings} />
+
+      <LanguageSettingsSection settings={settings} />
+
+      <AiProviderSettingsSection
+        settings={settings}
+        getFieldError={getFieldError}
+      />
+
+      <AgentHubSettingsSection
+        settings={settings}
+        getFieldError={getFieldError}
+      />
+
+      <McpSettingsSection settings={settings} />
+
+      <ConnectorsSettingsSection
+        settings={settings}
+        getFieldError={getFieldError}
+      />
+
+      <SecuritySettingsSection settings={settings} />
+
     </div>
   );
 }
