@@ -18,7 +18,14 @@ export type CyberMapSettings = {
   agentRequiresApproval: boolean;
   agentSandboxEnabled: boolean;
   agentNetworkAccess: boolean;
+  mcpEnabled: boolean;
+  mcpServerName: string;
   mcpTransport: string;
+  mcpCommand: string;
+  mcpArgs: string;
+  mcpUrl: string;
+  mcpAllowedTools: string;
+  mcpRequiresApproval: boolean;
   connectorPreset: string;
   requireHumanApproval: boolean;
   sandboxEnabled: boolean;

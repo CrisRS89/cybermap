@@ -76,8 +76,23 @@ export function parseSettings(rawSettings: string): CyberMapSettings {
         parsedSettings.agentNetworkAccess,
         defaultSettings.agentNetworkAccess
       ),
+      mcpEnabled: parseBoolean(
+        parsedSettings.mcpEnabled,
+        defaultSettings.mcpEnabled
+      ),
+      mcpServerName:
+        parsedSettings.mcpServerName ?? defaultSettings.mcpServerName,
       mcpTransport:
         parsedSettings.mcpTransport ?? defaultSettings.mcpTransport,
+      mcpCommand: parsedSettings.mcpCommand ?? defaultSettings.mcpCommand,
+      mcpArgs: parsedSettings.mcpArgs ?? defaultSettings.mcpArgs,
+      mcpUrl: parsedSettings.mcpUrl ?? defaultSettings.mcpUrl,
+      mcpAllowedTools:
+        parsedSettings.mcpAllowedTools ?? defaultSettings.mcpAllowedTools,
+      mcpRequiresApproval: parseBoolean(
+        parsedSettings.mcpRequiresApproval,
+        defaultSettings.mcpRequiresApproval
+      ),
       connectorPreset:
         parsedSettings.connectorPreset ?? defaultSettings.connectorPreset,
       requireHumanApproval: parseBoolean(
