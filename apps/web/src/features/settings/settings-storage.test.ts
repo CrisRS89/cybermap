@@ -60,6 +60,32 @@ describe("settings-storage", () => {
     });
   });
 
+  it("parses valid Agent Hub settings", () => {
+    const rawSettings = JSON.stringify({
+      ...defaultSettings,
+      agentPreset: "OpenCode",
+      agentIntegrationType: "cli",
+      agentCommand: "opencode run",
+      agentWorkingDirectory: "/workspace/cybermap",
+      agentTimeoutSeconds: "240",
+      agentRequiresApproval: true,
+      agentSandboxEnabled: true,
+      agentNetworkAccess: false,
+    });
+
+    expect(parseSettings(rawSettings)).toEqual({
+      ...defaultSettings,
+      agentPreset: "OpenCode",
+      agentIntegrationType: "cli",
+      agentCommand: "opencode run",
+      agentWorkingDirectory: "/workspace/cybermap",
+      agentTimeoutSeconds: "240",
+      agentRequiresApproval: true,
+      agentSandboxEnabled: true,
+      agentNetworkAccess: false,
+    });
+  });
+
   it("returns defaults when JSON is corrupt", () => {
     expect(parseSettings("{invalid-json")).toEqual(defaultSettings);
   });
@@ -81,9 +107,21 @@ describe("settings-storage", () => {
       sandboxEnabled: null,
       auditLogsEnabled: 1,
       aiApiKeyConfigured: "true",
+      agentRequiresApproval: "yes",
+      agentSandboxEnabled: "true",
+      agentNetworkAccess: "false",
     });
 
     expect(parseSettings(rawSettings)).toEqual(defaultSettings);
+  });
+
+  it("uses secure Agent Hub defaults", () => {
+    expect(defaultSettings.agentRequiresApproval).toBe(true);
+    expect(defaultSettings.agentSandboxEnabled).toBe(true);
+    expect(defaultSettings.agentNetworkAccess).toBe(false);
+    expect(defaultSettings.agentCommand).toBe("");
+    expect(defaultSettings.agentWorkingDirectory).toBe("");
+    expect(defaultSettings.agentTimeoutSeconds).toBe("120");
   });
 
   it("updates settings with a partial merge", () => {
@@ -133,6 +171,37 @@ describe("settings-storage", () => {
         aiModel: "llama3.2",
         aiBaseUrl: "http://localhost:11434/v1",
         aiPrivacyMode: "Local only",
+      });
+  });
+
+  it("updates Agent Hub settings with a partial merge", () => {
+    window.localStorage.setItem(
+      LOCAL_STORAGE_KEY,
+      JSON.stringify({
+        ...defaultSettings,
+        agentPreset: "Aider",
+        agentIntegrationType: "cli",
+        agentNetworkAccess: false,
+      })
+    );
+
+    updateSettings({
+      agentPreset: "Custom CLI",
+      agentCommand: "custom-agent run",
+      agentWorkingDirectory: "/workspace/project",
+      agentTimeoutSeconds: "300",
+      agentNetworkAccess: true,
+    });
+
+    expect(JSON.parse(window.localStorage.getItem(LOCAL_STORAGE_KEY) ?? "{}"))
+      .toEqual({
+        ...defaultSettings,
+        agentPreset: "Custom CLI",
+        agentIntegrationType: "cli",
+        agentCommand: "custom-agent run",
+        agentWorkingDirectory: "/workspace/project",
+        agentTimeoutSeconds: "300",
+        agentNetworkAccess: true,
       });
   });
 
