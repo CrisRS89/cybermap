@@ -35,6 +35,7 @@ export function SettingsForm() {
   return (
     <div className="space-y-6">
       <SettingsSection
+        id="appearance"
         eyebrow="Appearance"
         title="Apariencia"
         description="Configura tema visual y fondo del dashboard. En esta fase la persistencia es local."
@@ -56,6 +57,7 @@ export function SettingsForm() {
       </SettingsSection>
 
       <SettingsSection
+        id="language"
         eyebrow="Language"
         title="Idioma"
         description="Selector inicial de idioma. La internacionalización real se implementará luego con archivos de traducción."
@@ -71,6 +73,7 @@ export function SettingsForm() {
       </SettingsSection>
 
       <SettingsSection
+        id="ai-providers"
         eyebrow="AI Provider Gateway"
         title="Proveedores de IA"
         description="Define proveedor, modelo y modo de razonamiento. Las API keys reales no deben guardarse en frontend."
@@ -108,6 +111,7 @@ export function SettingsForm() {
       </SettingsSection>
 
       <SettingsSection
+        id="agents"
         eyebrow="Agent Hub"
         title="Agentes"
         description="Configura el preset inicial de agentes. Las acciones sensibles requerirán aprobación humana."
@@ -129,6 +133,7 @@ export function SettingsForm() {
       </SettingsSection>
 
       <SettingsSection
+        id="mcp"
         eyebrow="MCP"
         title="MCP Servers"
         description="Configuración visual inicial para servidores MCP por transporte stdio o HTTP."
@@ -150,6 +155,7 @@ export function SettingsForm() {
       </SettingsSection>
 
       <SettingsSection
+        id="connectors"
         eyebrow="Connectors"
         title="Conectores"
         description="Punto de entrada para herramientas externas. En fases futuras se agregará test de conexión."
@@ -171,6 +177,7 @@ export function SettingsForm() {
       </SettingsSection>
 
       <SettingsSection
+        id="security"
         eyebrow="Security"
         title="Políticas de seguridad"
         description="Controles mínimos para impedir ejecución peligrosa sin autorización."
