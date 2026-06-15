@@ -7,6 +7,7 @@ import {
   AI_PRIVACY_MODES,
   AI_PROVIDERS,
   BACKGROUNDS,
+  CONNECTOR_AUTH_MODES,
   CONNECTOR_PRESETS,
   LANGUAGES,
   MCP_TRANSPORTS,
@@ -326,21 +327,105 @@ export function SettingsForm() {
         id="connectors"
         eyebrow="Connectors"
         title="Conectores"
-        description="Punto de entrada para herramientas externas. En fases futuras se agregará test de conexión."
+        description="Configura fuentes externas de datos. No se guardan secretos reales ni se ejecutan sincronizaciones desde frontend."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 lg:grid-cols-3">
           <SelectField
-            label="Conector inicial"
+            label="Connector preset"
             value={settings.connectorPreset}
             options={CONNECTOR_PRESETS}
-            onChange={(connectorPreset) => updateSettings({ connectorPreset })}
+            onChange={(connectorPreset) =>
+              updateSettings({ connectorPreset })
+            }
+          />
+          <SelectField
+            label="Auth mode"
+            value={settings.connectorAuthMode}
+            options={CONNECTOR_AUTH_MODES}
+            onChange={(connectorAuthMode) =>
+              updateSettings({ connectorAuthMode })
+            }
           />
           <TextField
-            label="Endpoint opcional"
-            value=""
-            placeholder="https://connector.local"
-            onChange={() => undefined}
+            label="Sync interval minutes"
+            value={settings.connectorSyncIntervalMinutes}
+            placeholder="60"
+            onChange={(connectorSyncIntervalMinutes) =>
+              updateSettings({ connectorSyncIntervalMinutes })
+            }
           />
+          <TextField
+            label="Base URL"
+            value={settings.connectorBaseUrl}
+            placeholder="https://connector.local"
+            onChange={(connectorBaseUrl) =>
+              updateSettings({ connectorBaseUrl })
+            }
+          />
+        </div>
+
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          <ToggleField
+            label="Connector enabled"
+            description="Desactivado por defecto hasta configurar permisos."
+            checked={settings.connectorEnabled}
+            onChange={(connectorEnabled) =>
+              updateSettings({ connectorEnabled })
+            }
+          />
+          <ToggleField
+            label="Ingest findings"
+            description="Permitir importar hallazgos desde el conector."
+            checked={settings.connectorIngestFindings}
+            onChange={(connectorIngestFindings) =>
+              updateSettings({ connectorIngestFindings })
+            }
+          />
+          <ToggleField
+            label="Ingest assets"
+            description="Permitir importar activos desde el conector."
+            checked={settings.connectorIngestAssets}
+            onChange={(connectorIngestAssets) =>
+              updateSettings({ connectorIngestAssets })
+            }
+          />
+          <ToggleField
+            label="Requires approval"
+            description="Requerir aprobación antes de sincronizar datos."
+            checked={settings.connectorRequiresApproval}
+            onChange={(connectorRequiresApproval) =>
+              updateSettings({ connectorRequiresApproval })
+            }
+          />
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+          <p className="text-sm font-medium text-slate-100">
+            Connector secret
+          </p>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            Estado actual:{" "}
+            <span className="text-amber-200">
+              {settings.connectorSecretConfigured
+                ? "configurado"
+                : "no configurado"}
+            </span>
+          </p>
+          <p className="mt-2 text-xs leading-5 text-slate-500">
+            Los tokens, API keys o credenciales reales deberán almacenarse en
+            backend como secretos cifrados o referencias seguras.
+          </p>
+        </div>
+
+        <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
+          <p className="text-sm font-medium text-amber-200">
+            Sin sincronización desde frontend
+          </p>
+          <p className="mt-2 text-xs leading-5 text-slate-400">
+            Esta pantalla solo define configuración local. Las conexiones reales
+            deberán pasar por backend, validación de permisos, rate limits y
+            auditoría.
+          </p>
         </div>
       </SettingsSection>
 

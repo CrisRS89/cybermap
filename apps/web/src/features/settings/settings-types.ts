@@ -26,7 +26,15 @@ export type CyberMapSettings = {
   mcpUrl: string;
   mcpAllowedTools: string;
   mcpRequiresApproval: boolean;
+  connectorEnabled: boolean;
   connectorPreset: string;
+  connectorBaseUrl: string;
+  connectorAuthMode: string;
+  connectorSecretConfigured: boolean;
+  connectorSyncIntervalMinutes: string;
+  connectorIngestFindings: boolean;
+  connectorIngestAssets: boolean;
+  connectorRequiresApproval: boolean;
   requireHumanApproval: boolean;
   sandboxEnabled: boolean;
   auditLogsEnabled: boolean;

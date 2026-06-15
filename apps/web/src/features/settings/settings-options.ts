@@ -66,6 +66,13 @@ export const CONNECTOR_PRESETS = [
   "Custom",
 ] as const;
 
+export const CONNECTOR_AUTH_MODES = [
+  "none",
+  "api_key",
+  "bearer_token",
+  "basic",
+] as const;
+
 export const defaultSettings: CyberMapSettings = {
   theme: THEMES[0],
   background: BACKGROUNDS[0],
@@ -94,7 +101,15 @@ export const defaultSettings: CyberMapSettings = {
   mcpUrl: "",
   mcpAllowedTools: "",
   mcpRequiresApproval: true,
+  connectorEnabled: false,
   connectorPreset: CONNECTOR_PRESETS[0],
+  connectorBaseUrl: "",
+  connectorAuthMode: CONNECTOR_AUTH_MODES[0],
+  connectorSecretConfigured: false,
+  connectorSyncIntervalMinutes: "60",
+  connectorIngestFindings: true,
+  connectorIngestAssets: true,
+  connectorRequiresApproval: true,
   requireHumanApproval: true,
   sandboxEnabled: true,
   auditLogsEnabled: true,

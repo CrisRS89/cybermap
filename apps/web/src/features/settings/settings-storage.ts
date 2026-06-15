@@ -93,8 +93,35 @@ export function parseSettings(rawSettings: string): CyberMapSettings {
         parsedSettings.mcpRequiresApproval,
         defaultSettings.mcpRequiresApproval
       ),
+      connectorEnabled: parseBoolean(
+        parsedSettings.connectorEnabled,
+        defaultSettings.connectorEnabled
+      ),
       connectorPreset:
         parsedSettings.connectorPreset ?? defaultSettings.connectorPreset,
+      connectorBaseUrl:
+        parsedSettings.connectorBaseUrl ?? defaultSettings.connectorBaseUrl,
+      connectorAuthMode:
+        parsedSettings.connectorAuthMode ?? defaultSettings.connectorAuthMode,
+      connectorSecretConfigured: parseBoolean(
+        parsedSettings.connectorSecretConfigured,
+        defaultSettings.connectorSecretConfigured
+      ),
+      connectorSyncIntervalMinutes:
+        parsedSettings.connectorSyncIntervalMinutes ??
+        defaultSettings.connectorSyncIntervalMinutes,
+      connectorIngestFindings: parseBoolean(
+        parsedSettings.connectorIngestFindings,
+        defaultSettings.connectorIngestFindings
+      ),
+      connectorIngestAssets: parseBoolean(
+        parsedSettings.connectorIngestAssets,
+        defaultSettings.connectorIngestAssets
+      ),
+      connectorRequiresApproval: parseBoolean(
+        parsedSettings.connectorRequiresApproval,
+        defaultSettings.connectorRequiresApproval
+      ),
       requireHumanApproval: parseBoolean(
         parsedSettings.requireHumanApproval,
         defaultSettings.requireHumanApproval
