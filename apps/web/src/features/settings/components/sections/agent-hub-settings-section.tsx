@@ -1,3 +1,4 @@
+import { getSettingsSectionSchema } from "../../settings-schema";
 import {
   AGENT_INTEGRATION_TYPES,
   AGENT_PRESETS,
@@ -6,9 +7,11 @@ import { updateSettings } from "../../settings-storage";
 import type { CyberMapSettings } from "../../settings-types";
 import { FieldError } from "../fields/field-error";
 import { SelectField } from "../fields/select-field";
-import { SettingsSection } from "./settings-section";
 import { TextField } from "../fields/text-field";
 import { ToggleField } from "../fields/toggle-field";
+import { SettingsSection } from "./settings-section";
+
+const sectionSchema = getSettingsSectionSchema("agents");
 
 type AgentHubSettingsSectionProps = {
   settings: CyberMapSettings;
@@ -21,10 +24,10 @@ export function AgentHubSettingsSection({
 }: AgentHubSettingsSectionProps) {
   return (
     <SettingsSection
-      id="agents"
-      eyebrow="Agent Hub"
-      title="Agentes"
-      description="Configura agentes locales o externos. No se ejecuta ningún agente desde esta pantalla."
+      id={sectionSchema.id}
+      eyebrow={sectionSchema.eyebrow}
+      title={sectionSchema.title}
+      description={sectionSchema.description}
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <SelectField
