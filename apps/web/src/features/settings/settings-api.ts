@@ -1,17 +1,9 @@
+import type {
+  SettingsApiResponse,
+  SettingsApiSyncResult,
+  SettingsApiUpdateRequest,
+} from "./settings-contract";
 import type { CyberMapSettings } from "./settings-types";
-
-export type SettingsApiResponse = {
-  values: Partial<CyberMapSettings>;
-};
-
-export type SettingsApiSyncResult =
-  | {
-      synced: true;
-      values: Partial<CyberMapSettings>;
-    }
-  | {
-      synced: false;
-    };
 
 export function getSettingsApiBaseUrl(): string | undefined {
   const configuredUrl = process.env.NEXT_PUBLIC_CYBERMAP_API_URL?.trim();
@@ -29,27 +21,36 @@ export async function saveSettingsToApi(
   const apiBaseUrl = getSettingsApiBaseUrl();
 
   if (!apiBaseUrl || typeof fetch === "undefined") {
-    return { synced: false };
+    return {
+      synced: false,
+      status: "local",
+    };
   }
+
+  const requestBody: SettingsApiUpdateRequest = {
+    values: settings,
+  };
 
   const response = await fetch(`${apiBaseUrl}/settings`, {
     method: "PUT",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      values: settings,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
-    return { synced: false };
+    return {
+      synced: false,
+      status: "error",
+    };
   }
 
   const payload = (await response.json()) as SettingsApiResponse;
 
   return {
     synced: true,
+    status: "synced",
     values: payload.values,
   };
 }

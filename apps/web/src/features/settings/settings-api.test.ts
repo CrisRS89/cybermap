@@ -45,6 +45,7 @@ describe("settings API client", () => {
 
     expect(result).toEqual({
       synced: true,
+      status: "synced",
       values: {
         theme: "Dark Pro",
       },
@@ -77,6 +78,7 @@ describe("settings API client", () => {
 
     await expect(saveSettingsToApi(defaultSettings)).resolves.toEqual({
       synced: false,
+      status: "error",
     });
   });
 });

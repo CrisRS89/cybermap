@@ -3,8 +3,11 @@ import { defaultSettings } from "./settings-options";
 import {
   LOCAL_STORAGE_KEY,
   STORAGE_EVENT_NAME,
+  SYNC_STATUS_EVENT_NAME,
+  getSettingsSyncStatus,
   parseSettings,
   readSettingsRawSnapshot,
+  subscribeToSettingsSyncStatusChanges,
   updateSettings,
 } from "./settings-storage";
 
@@ -112,5 +115,44 @@ describe("settings-storage base", () => {
     expect(listener).toHaveBeenCalledTimes(1);
 
     window.removeEventListener(STORAGE_EVENT_NAME, listener);
+  });
+});
+
+describe("settings-storage sync status", () => {
+  beforeEach(() => {
+    window.localStorage.clear();
+    vi.restoreAllMocks();
+  });
+
+  it("starts with local sync status", () => {
+    expect(getSettingsSyncStatus()).toBe("local");
+  });
+
+  it("notifies syncing status after updating settings", () => {
+    const listener = vi.fn();
+    window.addEventListener(SYNC_STATUS_EVENT_NAME, listener);
+
+    updateSettings({
+      language: "EN",
+    });
+
+    expect(getSettingsSyncStatus()).toBe("syncing");
+    expect(listener).toHaveBeenCalled();
+
+    window.removeEventListener(SYNC_STATUS_EVENT_NAME, listener);
+  });
+
+  it("allows subscribing to sync status changes", () => {
+    const listener = vi.fn();
+
+    const unsubscribe = subscribeToSettingsSyncStatusChanges(listener);
+
+    updateSettings({
+      theme: "Dark Pro",
+    });
+
+    expect(listener).toHaveBeenCalled();
+
+    unsubscribe();
   });
 });

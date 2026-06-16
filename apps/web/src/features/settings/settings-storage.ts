@@ -1,11 +1,15 @@
 import { saveSettingsToApi } from "./settings-api";
+import type { SettingsSyncStatus } from "./settings-contract";
 import { defaultSettings } from "./settings-options";
 import type { CyberMapSettings } from "./settings-types";
 
 export const LOCAL_STORAGE_KEY = "cybermap_settings";
 export const STORAGE_EVENT_NAME = "cybermap-settings-change";
+export const SYNC_STATUS_EVENT_NAME = "cybermap-settings-sync-status-change";
 
 const defaultSettingsRaw = JSON.stringify(defaultSettings);
+
+let currentSyncStatus: SettingsSyncStatus = "local";
 
 export function readSettingsRawSnapshot(): string {
   if (typeof window === "undefined") {
@@ -17,6 +21,30 @@ export function readSettingsRawSnapshot(): string {
 
 export function readServerSettingsRawSnapshot(): string {
   return defaultSettingsRaw;
+}
+
+export function getSettingsSyncStatus(): SettingsSyncStatus {
+  return currentSyncStatus;
+}
+
+function updateSettingsSyncStatus(nextStatus: SettingsSyncStatus) {
+  currentSyncStatus = nextStatus;
+
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.dispatchEvent(new Event(SYNC_STATUS_EVENT_NAME));
+}
+
+export function subscribeToSettingsSyncStatusChanges(
+  onStoreChange: () => void
+) {
+  window.addEventListener(SYNC_STATUS_EVENT_NAME, onStoreChange);
+
+  return () => {
+    window.removeEventListener(SYNC_STATUS_EVENT_NAME, onStoreChange);
+  };
 }
 
 export function subscribeToSettingsChanges(onStoreChange: () => void) {
@@ -155,5 +183,13 @@ export function updateSettings(nextSettings: Partial<CyberMapSettings>) {
 
   window.dispatchEvent(new Event(STORAGE_EVENT_NAME));
 
-  void saveSettingsToApi(updatedSettings).catch(() => undefined);
+  updateSettingsSyncStatus("syncing");
+
+  void saveSettingsToApi(updatedSettings)
+    .then((result) => {
+      updateSettingsSyncStatus(result.status);
+    })
+    .catch(() => {
+      updateSettingsSyncStatus("error");
+    });
 }
