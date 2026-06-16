@@ -1,3 +1,4 @@
+import { saveSettingsToApi } from "./settings-api";
 import { defaultSettings } from "./settings-options";
 import type { CyberMapSettings } from "./settings-types";
 
@@ -153,4 +154,6 @@ export function updateSettings(nextSettings: Partial<CyberMapSettings>) {
   );
 
   window.dispatchEvent(new Event(STORAGE_EVENT_NAME));
+
+  void saveSettingsToApi(updatedSettings).catch(() => undefined);
 }
