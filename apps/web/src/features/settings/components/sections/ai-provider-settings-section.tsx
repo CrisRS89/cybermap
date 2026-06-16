@@ -1,3 +1,4 @@
+import { getSettingsSectionSchema } from "../../settings-schema";
 import {
   AI_PRIVACY_MODES,
   AI_PROVIDERS,
@@ -7,8 +8,10 @@ import { updateSettings } from "../../settings-storage";
 import type { CyberMapSettings } from "../../settings-types";
 import { FieldError } from "../fields/field-error";
 import { SelectField } from "../fields/select-field";
-import { SettingsSection } from "./settings-section";
 import { TextField } from "../fields/text-field";
+import { SettingsSection } from "./settings-section";
+
+const sectionSchema = getSettingsSectionSchema("ai-providers");
 
 type AiProviderSettingsSectionProps = {
   settings: CyberMapSettings;
@@ -21,10 +24,10 @@ export function AiProviderSettingsSection({
 }: AiProviderSettingsSectionProps) {
   return (
     <SettingsSection
-      id="ai-providers"
-      eyebrow="AI Provider Gateway"
-      title="Proveedores de IA"
-      description="Define proveedor, modelo, modo de razonamiento y parámetros de generación. Las API keys reales no deben guardarse en frontend."
+      id={sectionSchema.id}
+      eyebrow={sectionSchema.eyebrow}
+      title={sectionSchema.title}
+      description={sectionSchema.description}
     >
       <div className="grid gap-4 lg:grid-cols-3">
         <SelectField
