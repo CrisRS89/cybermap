@@ -1,36 +1,94 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CyberMap Web
 
-## Getting Started
+Frontend de CyberMap construido con Next.js, React, TypeScript y Tailwind CSS.
 
-First, run the development server:
+## Stack
+
+| Tecnología | Uso |
+|---|---|
+| Next.js 16 | Framework web |
+| React 19 | UI |
+| TypeScript | Tipado |
+| Tailwind CSS v4 | Estilos |
+| Vitest | Tests |
+
+## Configuración
+
+Crear archivo local:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+cp .env.example .env.local
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Variable requerida:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```env
+NEXT_PUBLIC_CYBERMAP_API_URL=http://localhost:8000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+No colocar secretos en variables NEXT_PUBLIC_*.
 
-## Learn More
+## Instalación
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm install
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Desde la raíz del repo también se puede usar:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm --prefix apps/web install
+```
 
-## Deploy on Vercel
+## Desarrollo
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Desde la raíz:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm --prefix apps/web run dev
+```
+
+Abrir:
+
+```text
+http://localhost:3000
+```
+
+Settings:
+
+```text
+http://localhost:3000/settings
+```
+
+## Validación
+
+```bash
+npm --prefix apps/web run lint
+npm --prefix apps/web run test
+npm --prefix apps/web run build
+```
+
+## Settings
+
+El módulo de settings incluye:
+
+- persistencia local en localStorage
+- sincronización con FastAPI usando PUT /settings
+- contrato formal en settings-contract.ts
+- estado observable de sincronización
+- badge visual en la UI
+
+Estados de sincronización:
+
+| Estado | Descripción |
+|---|---|
+| local | API no configurada o estado inicial local |
+| syncing | Enviando cambios al backend |
+| synced | Última sincronización correcta |
+| error | Falló la sincronización |
+
+## Seguridad frontend
+
+- No guardar secretos reales en localStorage.
+- No exponer API keys en variables NEXT_PUBLIC_*.
+- Usar solo flags como aiApiKeyConfigured o connectorSecretConfigured.
