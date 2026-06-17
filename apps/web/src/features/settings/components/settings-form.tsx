@@ -18,6 +18,7 @@ import { ConnectorsSettingsSection } from "./sections/connectors-settings-sectio
 import { LanguageSettingsSection } from "./sections/language-settings-section";
 import { McpSettingsSection } from "./sections/mcp-settings-section";
 import { SecuritySettingsSection } from "./sections/security-settings-section";
+import { SettingsSyncStatusBadge } from "./settings-sync-status-badge";
 import { ValidationSummary } from "./validation/validation-summary";
 
 export function SettingsForm() {
@@ -39,6 +40,7 @@ export function SettingsForm() {
 
   return (
     <div className="space-y-6">
+      <SettingsSyncStatusBadge />
       <ValidationSummary issues={validationResult.issues} />
 
       <AppearanceSettingsSection settings={settings} />
