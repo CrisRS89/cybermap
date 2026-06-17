@@ -41,3 +41,6 @@ venv/
 *.p12
 *.pfx
 secrets/
+
+# Test caches
+.pytest_cache/
