@@ -21,3 +21,13 @@ Proyecto en fase inicial.
 
 No almacenar API keys ni credenciales en el repositorio.
 Usar variables de entorno o gestor de secretos.
+
+## Validación MVP actual
+
+- Frontend Next.js levanta localmente.
+- Backend FastAPI levanta localmente.
+- GET /health responde OK.
+- GET /settings responde settings persistidos.
+- PUT /settings persiste cambios desde la UI.
+- La UI muestra estado de sincronización.
+- Tests frontend y backend pasan.
