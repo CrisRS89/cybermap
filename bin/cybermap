@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve symlinks so global installs like /usr/local/bin/cybermap
+# still locate the real repository root.
+SCRIPT_PATH="$(readlink -f "${BASH_SOURCE[0]}")"
+ROOT_DIR="$(cd "$(dirname "$SCRIPT_PATH")/.." && pwd)"
+
+exec bash "$ROOT_DIR/scripts/cybermap.sh" "$@"
