@@ -79,3 +79,13 @@ Validación principal:
 ```bash
 ./scripts/validate-local.sh
 ```
+
+## Instalación desde cero
+
+Guía recomendada para instalar CyberMap desde un clon limpio:
+
+- `docs/setup/fresh-clone.md`
+
+Validación principal:
+
+    ./scripts/validate-local.sh
