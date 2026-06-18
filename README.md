@@ -65,3 +65,17 @@ Ejecutar antes de cada commit funcional o de documentación relevante:
 ```bash
 ./scripts/validate-local.sh
 ```
+
+## Cierre MVP local
+
+El bloque MVP local está cerrado y documentado en:
+
+- `docs/validation/mvp-local-closure.md`
+- `docs/validation/mvp-local-readiness.md`
+- `docs/validation/e2e-settings-result.md`
+
+Validación principal:
+
+```bash
+./scripts/validate-local.sh
+```
