@@ -15,5 +15,5 @@ def get_settings() -> SettingsResponse:
 @router.put("", response_model=SettingsResponse)
 def update_settings(payload: SettingsPayload) -> SettingsResponse:
     service = SettingsService()
-    saved = service.save_settings(payload.values)
+    saved = service.save_settings(payload.values.model_dump(exclude_none=True))
     return SettingsResponse(values=saved)
