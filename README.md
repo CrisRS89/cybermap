@@ -89,3 +89,16 @@ Guía recomendada para instalar CyberMap desde un clon limpio:
 Validación principal:
 
     ./scripts/validate-local.sh
+
+## Acceso al repositorio
+
+Guia para clonar CyberMap como repositorio publico o privado:
+
+- `docs/setup/repository-access.md`
+
+Flujo recomendado para usuarios:
+
+    git clone https://github.com/CrisRS89/cybermap.git
+    cd cybermap
+    ./bin/cybermap install
+    ./bin/cybermap dev
