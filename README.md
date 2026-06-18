@@ -31,3 +31,37 @@ Usar variables de entorno o gestor de secretos.
 - PUT /settings persiste cambios desde la UI.
 - La UI muestra estado de sincronización.
 - Tests frontend y backend pasan.
+
+## Validación local automatizada
+
+El repositorio incluye un script para ejecutar la validación técnica principal del MVP local.
+
+```bash
+./scripts/validate-local.sh
+```
+
+Este script ejecuta:
+
+- tests del backend FastAPI usando `apps/api/.venv/bin/python`
+- lint del frontend Next.js
+- tests del frontend con Vitest
+- build de producción del frontend
+
+### Precondición
+
+Antes de ejecutarlo, el entorno virtual del backend debe existir y tener dependencias instaladas:
+
+```bash
+cd apps/api
+python -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+### Uso recomendado
+
+Ejecutar antes de cada commit funcional o de documentación relevante:
+
+```bash
+./scripts/validate-local.sh
+```
