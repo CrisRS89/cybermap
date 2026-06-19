@@ -3,6 +3,7 @@ from sqlite3 import IntegrityError
 
 from fastapi import APIRouter, HTTPException
 
+from app.repositories.exploration_sqlite_repository import ExplorationSQLiteRepository
 from app.schemas.exploration import (
     AssetCreate,
     AssetListResponse,
@@ -11,7 +12,13 @@ from app.schemas.exploration import (
     FindingListResponse,
     FindingRead,
 )
-from app.repositories.exploration_sqlite_repository import ExplorationSQLiteRepository
+from app.schemas.nmap_import import (
+    NmapImportRequest,
+    NmapImportResponse,
+    NmapImportSummaryResponse,
+)
+from app.services.nmap_import_service import NmapImportService
+from app.services.nmap_parser import NmapParseError
 
 router = APIRouter(prefix="/exploration", tags=["exploration"])
 
@@ -68,3 +75,33 @@ def create_finding(payload: FindingCreate) -> FindingRead:
             status_code=400,
             detail="Associated asset does not exist",
         ) from error
+
+
+@router.post("/imports/nmap", response_model=NmapImportResponse)
+def import_nmap_xml(payload: NmapImportRequest) -> NmapImportResponse:
+    """Importa XML de Nmap y crea Assets de Exploration.
+
+    Seguridad:
+    - No ejecuta Nmap.
+    - No acepta rutas locales.
+    - No descarga URLs.
+    - El XML recibido se delega al parser seguro.
+    - Los errores de parsing se traducen a HTTP controlado.
+    """
+
+    service = NmapImportService(get_exploration_service())
+
+    try:
+        summary = service.import_xml(payload.xml)
+    except NmapParseError as error:
+        status_code = 413 if "maximum size" in str(error) else 400
+        raise HTTPException(status_code=status_code, detail=str(error)) from error
+
+    return NmapImportResponse(
+        summary=NmapImportSummaryResponse(
+            assetsCreated=summary.assets_created,
+            hostsSeen=summary.hosts_seen,
+            openPortsSeen=summary.open_ports_seen,
+            warnings=summary.warnings,
+        )
+    )
