@@ -98,7 +98,7 @@ describe("exploration-api", () => {
             description: "",
             severity: "high",
             status: "open",
-            assetId: null,
+            assetId: "asset_1",
             source: "manual",
             evidence: "",
             recommendation: "",
@@ -136,6 +136,7 @@ describe("exploration-api", () => {
     const finding = await createExplorationFinding({
       title: "Example finding",
       severity: "high",
+      assetId: "asset_1",
       evidence: "evidence",
     });
 
@@ -147,6 +148,7 @@ describe("exploration-api", () => {
         body: JSON.stringify({
           title: "Example finding",
           severity: "high",
+          assetId: "asset_1",
           evidence: "evidence",
         }),
       })

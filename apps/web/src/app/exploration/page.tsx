@@ -48,6 +48,7 @@ type AssetFormState = {
 type FindingFormState = {
   title: string;
   severity: FindingSeverity;
+  assetId: string | null;
   evidence: string;
 };
 
@@ -62,6 +63,7 @@ const initialAssetForm: AssetFormState = {
 const initialFindingForm: FindingFormState = {
   title: "",
   severity: "medium",
+  assetId: null,
   evidence: "",
 };
 
@@ -203,6 +205,7 @@ export default function ExplorationPage() {
       await createExplorationFinding({
         title: findingForm.title.trim(),
         severity: findingForm.severity,
+        assetId: findingForm.assetId,
         evidence: findingForm.evidence.trim(),
       });
 
@@ -410,6 +413,27 @@ export default function ExplorationPage() {
             </label>
 
             <label className="grid gap-2 text-sm text-slate-300">
+              Asset asociado
+              <select
+                value={findingForm.assetId ?? ""}
+                onChange={(event) =>
+                  setFindingForm((current) => ({
+                    ...current,
+                    assetId: event.target.value ? event.target.value : null,
+                  }))
+                }
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+              >
+                <option value="">Sin asset asociado</option>
+                {state.assets.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.name} ({asset.kind})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
               Evidencia
               <textarea
                 value={findingForm.evidence}
@@ -522,6 +546,12 @@ export default function ExplorationPage() {
                   <p className="mt-2 text-sm text-slate-300">
                     Estado: {finding.status}
                   </p>
+
+                  {finding.assetId ? (
+                    <p className="mt-2 text-sm text-slate-400">
+                      Asset asociado: {finding.assetId}
+                    </p>
+                  ) : null}
 
                   {finding.evidence ? (
                     <p className="mt-2 text-sm text-slate-400">
