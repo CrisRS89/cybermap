@@ -128,3 +128,43 @@ def test_sqlite_repository_persists_findings_between_instances(tmp_path):
 
     assert len(second.list_findings()) == 1
     assert second.list_findings()[0].title == "Persisted finding"
+
+
+def test_sqlite_repository_preserves_existing_data_after_reinitialization(tmp_path):
+    database_path = tmp_path / "cybermap.db"
+
+    first = ExplorationSQLiteRepository(database_path)
+    asset = first.create_asset(
+        AssetCreate(
+            name="Existing Asset",
+            kind="host",
+            value="existing.local",
+        )
+    )
+
+    second = ExplorationSQLiteRepository(database_path)
+    assets = second.list_assets()
+
+    assert len(assets) == 1
+    assert assets[0].id == asset.id
+    assert assets[0].name == "Existing Asset"
+
+
+def test_sqlite_repository_does_not_duplicate_migration_records(tmp_path):
+    database_path = tmp_path / "cybermap.db"
+
+    ExplorationSQLiteRepository(database_path)
+    ExplorationSQLiteRepository(database_path)
+
+    import sqlite3
+
+    with sqlite3.connect(database_path) as connection:
+        rows = connection.execute(
+            """
+            SELECT version, COUNT(*)
+            FROM schema_migrations
+            GROUP BY version
+            """
+        ).fetchall()
+
+    assert rows == [("001_exploration_initial", 1)]
