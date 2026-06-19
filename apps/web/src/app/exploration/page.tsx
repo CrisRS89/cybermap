@@ -8,7 +8,10 @@ import {
   listExplorationAssets,
   listExplorationFindings,
 } from "@/features/exploration/exploration-api";
-import { importNmapXml } from "@/features/exploration/exploration-imports-api";
+import {
+  importNmapXml,
+  type ImportNmapXmlSummary,
+} from "@/features/exploration/exploration-imports-api";
 import type {
   AssetCriticality,
   AssetEnvironment,
@@ -95,6 +98,8 @@ export default function ExplorationPage() {
   const [isSubmittingAsset, setIsSubmittingAsset] = useState(false);
   const [isSubmittingFinding, setIsSubmittingFinding] = useState(false);
   const [nmapXml, setNmapXml] = useState("");
+  const [nmapImportSummary, setNmapImportSummary] =
+    useState<ImportNmapXmlSummary | null>(null);
   const [isImportingNmap, setIsImportingNmap] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -239,6 +244,7 @@ export default function ExplorationPage() {
   async function handleImportNmapXml(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
+    setNmapImportSummary(null);
 
     if (!nmapXml.trim()) {
       setFormError("Pegá XML de Nmap antes de importar.");
@@ -248,10 +254,11 @@ export default function ExplorationPage() {
     setIsImportingNmap(true);
 
     try {
-      await importNmapXml({
+      const response = await importNmapXml({
         xml: nmapXml.trim(),
       });
 
+      setNmapImportSummary(response.summary);
       setNmapXml("");
       await loadExplorationData();
     } catch (error) {
@@ -526,7 +533,10 @@ export default function ExplorationPage() {
             XML de Nmap
             <textarea
               value={nmapXml}
-              onChange={(event) => setNmapXml(event.target.value)}
+              onChange={(event) => {
+                setNmapXml(event.target.value);
+                setNmapImportSummary(null);
+              }}
               className="min-h-56 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-sm text-slate-100 outline-none focus:border-cyan-500"
               placeholder="<nmaprun>...</nmaprun>"
             />
@@ -539,6 +549,50 @@ export default function ExplorationPage() {
           >
             {isImportingNmap ? "Importando..." : "Importar XML Nmap"}
           </button>
+
+          {nmapImportSummary ? (
+            <section className="rounded-xl border border-emerald-900/70 bg-emerald-950/30 p-4">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
+                Resumen de importación
+              </h3>
+
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+                <div className="rounded-lg bg-slate-950/60 p-3">
+                  <dt className="text-slate-400">Assets creados</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                    {nmapImportSummary.assetsCreated}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-slate-950/60 p-3">
+                  <dt className="text-slate-400">Hosts vistos</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                    {nmapImportSummary.hostsSeen}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-slate-950/60 p-3">
+                  <dt className="text-slate-400">Puertos abiertos</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                    {nmapImportSummary.openPortsSeen}
+                  </dd>
+                </div>
+              </dl>
+
+              {nmapImportSummary.warnings.length > 0 ? (
+                <div className="mt-4 rounded-lg border border-amber-900/70 bg-amber-950/30 p-3">
+                  <p className="text-sm font-medium text-amber-200">
+                    Advertencias
+                  </p>
+                  <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-amber-100">
+                    {nmapImportSummary.warnings.map((warning) => (
+                      <li key={warning}>{warning}</li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+            </section>
+          ) : null}
         </div>
       </form>
 
