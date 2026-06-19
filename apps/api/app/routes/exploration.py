@@ -16,9 +16,14 @@ router = APIRouter(prefix="/exploration", tags=["exploration"])
 
 
 def get_exploration_service() -> ExplorationService:
-    """Crea el servicio de Exploration usando storage local del MVP."""
+    """Crea el servicio de Exploration usando storage local del MVP.
 
-    return ExplorationService(Path("apps/api/data"))
+    La ruta se resuelve desde este archivo para evitar depender del
+    directorio actual desde donde se ejecute Uvicorn.
+    """
+
+    api_root = Path(__file__).resolve().parents[2]
+    return ExplorationService(api_root / "data")
 
 
 @router.get("/assets", response_model=AssetListResponse)
