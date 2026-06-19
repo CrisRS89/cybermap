@@ -1,14 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 
 import {
+  createExplorationAsset,
+  createExplorationFinding,
   listExplorationAssets,
   listExplorationFindings,
 } from "@/features/exploration/exploration-api";
 import type {
+  AssetCriticality,
+  AssetEnvironment,
+  AssetKind,
   ExplorationAsset,
   ExplorationFinding,
+  FindingSeverity,
 } from "@/features/exploration/exploration-types";
 
 type ExplorationPageState =
@@ -31,6 +37,34 @@ type ExplorationPageState =
       error: string;
     };
 
+type AssetFormState = {
+  name: string;
+  kind: AssetKind;
+  value: string;
+  environment: AssetEnvironment;
+  criticality: AssetCriticality;
+};
+
+type FindingFormState = {
+  title: string;
+  severity: FindingSeverity;
+  evidence: string;
+};
+
+const initialAssetForm: AssetFormState = {
+  name: "",
+  kind: "host",
+  value: "",
+  environment: "unknown",
+  criticality: "medium",
+};
+
+const initialFindingForm: FindingFormState = {
+  title: "",
+  severity: "medium",
+  evidence: "",
+};
+
 export default function ExplorationPage() {
   const [state, setState] = useState<ExplorationPageState>({
     status: "loading",
@@ -39,10 +73,50 @@ export default function ExplorationPage() {
     error: null,
   });
 
+  const [assetForm, setAssetForm] = useState<AssetFormState>(initialAssetForm);
+  const [findingForm, setFindingForm] =
+    useState<FindingFormState>(initialFindingForm);
+  const [isSubmittingAsset, setIsSubmittingAsset] = useState(false);
+  const [isSubmittingFinding, setIsSubmittingFinding] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  async function loadExplorationData() {
+    setState((current) => ({
+      status: "loading",
+      assets: current.assets,
+      findings: current.findings,
+      error: null,
+    }));
+
+    try {
+      const [assets, findings] = await Promise.all([
+        listExplorationAssets(),
+        listExplorationFindings(),
+      ]);
+
+      setState({
+        status: "ready",
+        assets,
+        findings,
+        error: null,
+      });
+    } catch (error) {
+      setState({
+        status: "error",
+        assets: [],
+        findings: [],
+        error:
+          error instanceof Error
+            ? error.message
+            : "No se pudo cargar Exploration.",
+      });
+    }
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    async function loadExplorationData() {
+    async function loadInitialExplorationData() {
       try {
         const [assets, findings] = await Promise.all([
           listExplorationAssets(),
@@ -76,12 +150,72 @@ export default function ExplorationPage() {
       }
     }
 
-    void loadExplorationData();
+    void loadInitialExplorationData();
 
     return () => {
       isMounted = false;
     };
   }, []);
+
+  async function handleCreateAsset(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+
+    if (!assetForm.name.trim() || !assetForm.value.trim()) {
+      setFormError("Asset requiere nombre y valor técnico.");
+      return;
+    }
+
+    setIsSubmittingAsset(true);
+
+    try {
+      await createExplorationAsset({
+        name: assetForm.name.trim(),
+        kind: assetForm.kind,
+        value: assetForm.value.trim(),
+        environment: assetForm.environment,
+        criticality: assetForm.criticality,
+      });
+
+      setAssetForm(initialAssetForm);
+      await loadExplorationData();
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "No se pudo crear el asset."
+      );
+    } finally {
+      setIsSubmittingAsset(false);
+    }
+  }
+
+  async function handleCreateFinding(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+
+    if (!findingForm.title.trim()) {
+      setFormError("Finding requiere título.");
+      return;
+    }
+
+    setIsSubmittingFinding(true);
+
+    try {
+      await createExplorationFinding({
+        title: findingForm.title.trim(),
+        severity: findingForm.severity,
+        evidence: findingForm.evidence.trim(),
+      });
+
+      setFindingForm(initialFindingForm);
+      await loadExplorationData();
+    } catch (error) {
+      setFormError(
+        error instanceof Error ? error.message : "No se pudo crear el finding."
+      );
+    } finally {
+      setIsSubmittingFinding(false);
+    }
+  }
 
   const isEmpty =
     state.status === "ready" &&
@@ -101,11 +235,204 @@ export default function ExplorationPage() {
           </h1>
 
           <p className="max-w-3xl text-sm leading-6 text-slate-300">
-            Módulo para visualizar activos y hallazgos iniciales cargados desde
-            el backend de CyberMap. Esta versión usa storage JSON temporal y
-            prepara la futura migración a SQLite.
+            Módulo para visualizar y cargar activos y hallazgos iniciales.
+            Esta versión usa storage JSON temporal en el backend.
           </p>
         </div>
+
+        <div className="mt-5">
+          <button
+            type="button"
+            onClick={() => void loadExplorationData()}
+            className="rounded-lg border border-cyan-700 bg-cyan-950/40 px-4 py-2 text-sm font-medium text-cyan-100 transition hover:bg-cyan-900/60"
+          >
+            Refrescar datos
+          </button>
+        </div>
+      </section>
+
+      {formError ? (
+        <section className="rounded-2xl border border-red-900/70 bg-red-950/30 p-4 text-sm text-red-100">
+          {formError}
+        </section>
+      ) : null}
+
+      <section className="grid gap-6 lg:grid-cols-2">
+        <form
+          onSubmit={handleCreateAsset}
+          className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6"
+        >
+          <h2 className="text-xl font-semibold text-slate-50">Crear Asset</h2>
+
+          <div className="mt-4 grid gap-4">
+            <label className="grid gap-2 text-sm text-slate-300">
+              Nombre
+              <input
+                value={assetForm.name}
+                onChange={(event) =>
+                  setAssetForm((current) => ({
+                    ...current,
+                    name: event.target.value,
+                  }))
+                }
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                placeholder="Localhost"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Valor técnico
+              <input
+                value={assetForm.value}
+                onChange={(event) =>
+                  setAssetForm((current) => ({
+                    ...current,
+                    value: event.target.value,
+                  }))
+                }
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                placeholder="localhost"
+              />
+            </label>
+
+            <div className="grid gap-4 sm:grid-cols-3">
+              <label className="grid gap-2 text-sm text-slate-300">
+                Tipo
+                <select
+                  value={assetForm.kind}
+                  onChange={(event) =>
+                    setAssetForm((current) => ({
+                      ...current,
+                      kind: event.target.value as AssetKind,
+                    }))
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                >
+                  <option value="host">host</option>
+                  <option value="ip">ip</option>
+                  <option value="domain">domain</option>
+                  <option value="url">url</option>
+                  <option value="service">service</option>
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm text-slate-300">
+                Entorno
+                <select
+                  value={assetForm.environment}
+                  onChange={(event) =>
+                    setAssetForm((current) => ({
+                      ...current,
+                      environment: event.target.value as AssetEnvironment,
+                    }))
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                >
+                  <option value="unknown">unknown</option>
+                  <option value="dev">dev</option>
+                  <option value="staging">staging</option>
+                  <option value="prod">prod</option>
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm text-slate-300">
+                Criticidad
+                <select
+                  value={assetForm.criticality}
+                  onChange={(event) =>
+                    setAssetForm((current) => ({
+                      ...current,
+                      criticality: event.target.value as AssetCriticality,
+                    }))
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                >
+                  <option value="low">low</option>
+                  <option value="medium">medium</option>
+                  <option value="high">high</option>
+                  <option value="critical">critical</option>
+                </select>
+              </label>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isSubmittingAsset}
+              className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmittingAsset ? "Creando..." : "Crear Asset"}
+            </button>
+          </div>
+        </form>
+
+        <form
+          onSubmit={handleCreateFinding}
+          className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6"
+        >
+          <h2 className="text-xl font-semibold text-slate-50">
+            Crear Finding
+          </h2>
+
+          <div className="mt-4 grid gap-4">
+            <label className="grid gap-2 text-sm text-slate-300">
+              Título
+              <input
+                value={findingForm.title}
+                onChange={(event) =>
+                  setFindingForm((current) => ({
+                    ...current,
+                    title: event.target.value,
+                  }))
+                }
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                placeholder="Puerto expuesto"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Severidad
+              <select
+                value={findingForm.severity}
+                onChange={(event) =>
+                  setFindingForm((current) => ({
+                    ...current,
+                    severity: event.target.value as FindingSeverity,
+                  }))
+                }
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+              >
+                <option value="info">info</option>
+                <option value="low">low</option>
+                <option value="medium">medium</option>
+                <option value="high">high</option>
+                <option value="critical">critical</option>
+              </select>
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Evidencia
+              <textarea
+                value={findingForm.evidence}
+                onChange={(event) =>
+                  setFindingForm((current) => ({
+                    ...current,
+                    evidence: event.target.value,
+                  }))
+                }
+                className="min-h-24 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                placeholder="Evidencia observada"
+              />
+            </label>
+
+            <button
+              type="submit"
+              disabled={isSubmittingFinding}
+              className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {isSubmittingFinding ? "Creando..." : "Crear Finding"}
+            </button>
+          </div>
+        </form>
       </section>
 
       {state.status === "loading" ? (
@@ -129,8 +456,8 @@ export default function ExplorationPage() {
             Todavía no hay datos
           </h2>
           <p className="mt-2 text-sm text-slate-300">
-            Creá assets o findings desde la API para empezar a poblar esta
-            vista.
+            Creá assets o findings desde los formularios para empezar a poblar
+            esta vista.
           </p>
         </section>
       ) : null}
