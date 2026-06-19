@@ -165,3 +165,102 @@ def test_import_nmap_xml_with_extra_field_returns_422(
     )
 
     assert response.status_code == 422
+
+
+def test_import_nmap_xml_realistic_scan_persists_multiple_assets(
+    client_with_temp_db: TestClient,
+) -> None:
+    """Valida un flujo E2E backend con XML de Nmap más realista.
+
+    Cubre:
+    - múltiples hosts;
+    - host con hostname;
+    - host sin hostname;
+    - puertos abiertos;
+    - puertos cerrados ignorados;
+    - host sin address reportado como warning;
+    - persistencia observable vía GET /exploration/assets.
+    """
+
+    xml = """
+    <nmaprun scanner="nmap" args="nmap -sV -oX scan.xml 192.168.1.0/24">
+      <host>
+        <status state="up" reason="syn-ack" />
+        <address addr="192.168.1.10" addrtype="ipv4" />
+        <hostnames>
+          <hostname name="web-01.local" type="PTR" />
+        </hostnames>
+        <ports>
+          <port protocol="tcp" portid="22">
+            <state state="closed" reason="reset" />
+            <service name="ssh" />
+          </port>
+          <port protocol="tcp" portid="80">
+            <state state="open" reason="syn-ack" />
+            <service name="http" product="nginx" version="1.24.0" />
+          </port>
+          <port protocol="tcp" portid="443">
+            <state state="open" reason="syn-ack" />
+            <service name="https" product="nginx" />
+          </port>
+        </ports>
+      </host>
+
+      <host>
+        <status state="up" reason="syn-ack" />
+        <address addr="192.168.1.20" addrtype="ipv4" />
+        <ports>
+          <port protocol="tcp" portid="22">
+            <state state="open" reason="syn-ack" />
+            <service name="ssh" product="OpenSSH" />
+          </port>
+          <port protocol="tcp" portid="3389">
+            <state state="closed" reason="reset" />
+            <service name="ms-wbt-server" />
+          </port>
+        </ports>
+      </host>
+
+      <host>
+        <status state="up" reason="user-set" />
+        <hostnames>
+          <hostname name="no-address.local" type="user" />
+        </hostnames>
+      </host>
+    </nmaprun>
+    """
+
+    response = client_with_temp_db.post(
+        "/exploration/imports/nmap",
+        json={"xml": xml},
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+    summary = body["summary"]
+
+    assert summary["assetsCreated"] == 2
+    assert summary["hostsSeen"] == 2
+    assert summary["openPortsSeen"] == 3
+    assert len(summary["warnings"]) == 1
+
+    assets_response = client_with_temp_db.get("/exploration/assets")
+
+    assert assets_response.status_code == 200
+
+    assets = assets_response.json()["items"]
+
+    assert len(assets) == 2
+
+    assets_by_value = {asset["value"]: asset for asset in assets}
+
+    assert assets_by_value["192.168.1.10"]["kind"] == "ip"
+    assert assets_by_value["192.168.1.10"]["name"] == "web-01.local"
+    assert assets_by_value["192.168.1.10"]["environment"] == "unknown"
+    assert assets_by_value["192.168.1.10"]["criticality"] == "medium"
+
+    assert assets_by_value["192.168.1.20"]["kind"] == "ip"
+    assert assets_by_value["192.168.1.20"]["name"] == "192.168.1.20"
+    assert assets_by_value["192.168.1.20"]["environment"] == "unknown"
+    assert assets_by_value["192.168.1.20"]["criticality"] == "medium"
