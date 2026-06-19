@@ -8,6 +8,7 @@ import {
   listExplorationAssets,
   listExplorationFindings,
 } from "@/features/exploration/exploration-api";
+import { importNmapXml } from "@/features/exploration/exploration-imports-api";
 import type {
   AssetCriticality,
   AssetEnvironment,
@@ -93,6 +94,8 @@ export default function ExplorationPage() {
     useState<FindingFormState>(initialFindingForm);
   const [isSubmittingAsset, setIsSubmittingAsset] = useState(false);
   const [isSubmittingFinding, setIsSubmittingFinding] = useState(false);
+  const [nmapXml, setNmapXml] = useState("");
+  const [isImportingNmap, setIsImportingNmap] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
 
   async function loadExplorationData() {
@@ -230,6 +233,35 @@ export default function ExplorationPage() {
       );
     } finally {
       setIsSubmittingFinding(false);
+    }
+  }
+
+  async function handleImportNmapXml(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setFormError(null);
+
+    if (!nmapXml.trim()) {
+      setFormError("Pegá XML de Nmap antes de importar.");
+      return;
+    }
+
+    setIsImportingNmap(true);
+
+    try {
+      await importNmapXml({
+        xml: nmapXml.trim(),
+      });
+
+      setNmapXml("");
+      await loadExplorationData();
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo importar el XML de Nmap."
+      );
+    } finally {
+      setIsImportingNmap(false);
     }
   }
 
@@ -471,6 +503,44 @@ export default function ExplorationPage() {
           </div>
         </form>
       </section>
+
+      <form
+        onSubmit={handleImportNmapXml}
+        className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6"
+      >
+        <div className="flex flex-col gap-2">
+          <p className="text-sm font-medium uppercase tracking-wide text-cyan-400">
+            Importación
+          </p>
+          <h2 className="text-xl font-semibold text-slate-50">
+            Importar XML de Nmap
+          </h2>
+          <p className="max-w-3xl text-sm leading-6 text-slate-300">
+            Pegá una salida XML generada por Nmap. CyberMap no ejecuta Nmap,
+            no descarga URLs y no lee rutas locales; solo procesa el XML pegado.
+          </p>
+        </div>
+
+        <div className="mt-4 grid gap-4">
+          <label className="grid gap-2 text-sm text-slate-300">
+            XML de Nmap
+            <textarea
+              value={nmapXml}
+              onChange={(event) => setNmapXml(event.target.value)}
+              className="min-h-56 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 font-mono text-sm text-slate-100 outline-none focus:border-cyan-500"
+              placeholder="<nmaprun>...</nmaprun>"
+            />
+          </label>
+
+          <button
+            type="submit"
+            disabled={isImportingNmap}
+            className="rounded-lg bg-cyan-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isImportingNmap ? "Importando..." : "Importar XML Nmap"}
+          </button>
+        </div>
+      </form>
 
       {state.status === "loading" ? (
         <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6 text-slate-300">
