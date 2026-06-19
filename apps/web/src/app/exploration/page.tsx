@@ -67,6 +67,19 @@ const initialFindingForm: FindingFormState = {
   evidence: "",
 };
 
+function getAssetLabel(
+  assetId: string,
+  assets: ExplorationAsset[]
+): string {
+  const asset = assets.find((item) => item.id === assetId);
+
+  if (!asset) {
+    return assetId;
+  }
+
+  return `${asset.name} (${asset.kind})`;
+}
+
 export default function ExplorationPage() {
   const [state, setState] = useState<ExplorationPageState>({
     status: "loading",
@@ -549,7 +562,7 @@ export default function ExplorationPage() {
 
                   {finding.assetId ? (
                     <p className="mt-2 text-sm text-slate-400">
-                      Asset asociado: {finding.assetId}
+                      Asset asociado: {getAssetLabel(finding.assetId, state.assets)}
                     </p>
                   ) : null}
 
