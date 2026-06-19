@@ -10,20 +10,20 @@ from app.schemas.exploration import (
     FindingListResponse,
     FindingRead,
 )
-from app.services.exploration_service import ExplorationService
+from app.repositories.exploration_sqlite_repository import ExplorationSQLiteRepository
 
 router = APIRouter(prefix="/exploration", tags=["exploration"])
 
 
-def get_exploration_service() -> ExplorationService:
-    """Crea el servicio de Exploration usando storage local del MVP.
+def get_exploration_service() -> ExplorationSQLiteRepository:
+    """Crea el repositorio SQLite de Exploration.
 
     La ruta se resuelve desde este archivo para evitar depender del
     directorio actual desde donde se ejecute Uvicorn.
     """
 
     api_root = Path(__file__).resolve().parents[2]
-    return ExplorationService(api_root / "data")
+    return ExplorationSQLiteRepository(api_root / "data" / "cybermap.db")
 
 
 @router.get("/assets", response_model=AssetListResponse)
