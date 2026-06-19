@@ -1,6 +1,7 @@
 from pathlib import Path
+from sqlite3 import IntegrityError
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.schemas.exploration import (
     AssetCreate,
@@ -52,7 +53,18 @@ def list_findings() -> FindingListResponse:
 
 @router.post("/findings", response_model=FindingRead)
 def create_finding(payload: FindingCreate) -> FindingRead:
-    """Crea un finding manual."""
+    """Crea un finding manual.
+
+    Si `assetId` apunta a un asset inexistente, SQLite rechaza la FK.
+    La API traduce ese error de persistencia a una respuesta HTTP controlada.
+    """
 
     service = get_exploration_service()
-    return service.create_finding(payload)
+
+    try:
+        return service.create_finding(payload)
+    except IntegrityError as error:
+        raise HTTPException(
+            status_code=400,
+            detail="Associated asset does not exist",
+        ) from error
