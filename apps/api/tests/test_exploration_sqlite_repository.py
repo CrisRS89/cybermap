@@ -3,7 +3,13 @@ import sqlite3
 import pytest
 
 from app.repositories.exploration_sqlite_repository import ExplorationSQLiteRepository
-from app.schemas.exploration import AssetCreate, FindingCreate
+from app.schemas.exploration import (
+    AssetCreate,
+    AssetCriticality,
+    AssetEnvironment,
+    AssetKind,
+    FindingCreate,
+)
 
 
 def test_sqlite_repository_starts_empty(tmp_path):
@@ -168,3 +174,93 @@ def test_sqlite_repository_does_not_duplicate_migration_records(tmp_path):
         ).fetchall()
 
     assert rows == [("001_exploration_initial", 1)]
+
+
+def test_find_asset_by_kind_and_value_returns_existing_asset(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    created = repository.create_asset(
+        AssetCreate(
+            name="Web server",
+            kind=AssetKind.IP,
+            value="192.168.1.10",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    found = repository.find_asset_by_kind_and_value(
+        AssetKind.IP,
+        "192.168.1.10",
+    )
+
+    assert found is not None
+    assert found.id == created.id
+    assert found.kind == AssetKind.IP
+    assert found.value == "192.168.1.10"
+
+
+def test_find_asset_by_kind_and_value_returns_none_when_missing(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    found = repository.find_asset_by_kind_and_value(
+        AssetKind.IP,
+        "192.168.1.99",
+    )
+
+    assert found is None
+
+
+def test_find_asset_by_kind_and_value_matches_kind_and_value(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    ip_asset = repository.create_asset(
+        AssetCreate(
+            name="IP target",
+            kind=AssetKind.IP,
+            value="example.local",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    repository.create_asset(
+        AssetCreate(
+            name="Domain target",
+            kind=AssetKind.DOMAIN,
+            value="example.local",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    found = repository.find_asset_by_kind_and_value(
+        AssetKind.IP,
+        "example.local",
+    )
+
+    assert found is not None
+    assert found.id == ip_asset.id
+    assert found.kind == AssetKind.IP
+    assert found.value == "example.local"
+
+
+def test_find_asset_by_kind_and_value_does_not_match_different_value(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    repository.create_asset(
+        AssetCreate(
+            name="Web server",
+            kind=AssetKind.IP,
+            value="192.168.1.10",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    found = repository.find_asset_by_kind_and_value(
+        AssetKind.IP,
+        "192.168.1.11",
+    )
+
+    assert found is None

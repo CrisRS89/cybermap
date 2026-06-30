@@ -3,7 +3,7 @@ from pathlib import Path
 from uuid import uuid4
 import sqlite3
 
-from app.schemas.exploration import AssetCreate, AssetRead, FindingCreate, FindingRead
+from app.schemas.exploration import AssetCreate, AssetKind, AssetRead, FindingCreate, FindingRead
 from app.storage.sqlite_migrations import apply_sqlite_migrations
 
 
@@ -39,19 +39,47 @@ class ExplorationSQLiteRepository:
                 """
             ).fetchall()
 
-        return [
-            AssetRead(
-                id=row["id"],
-                name=row["name"],
-                kind=row["kind"],
-                value=row["value"],
-                environment=row["environment"],
-                criticality=row["criticality"],
-                createdAt=datetime.fromisoformat(row["created_at"]),
-                updatedAt=datetime.fromisoformat(row["updated_at"]),
-            )
-            for row in rows
-        ]
+        return [self._row_to_asset(row) for row in rows]
+
+    def find_asset_by_kind_and_value(
+        self,
+        kind: AssetKind,
+        value: str,
+    ) -> AssetRead | None:
+        """Busca un asset existente por tipo y valor técnico.
+
+        Propósito:
+        - soportar deduplicación conservadora en importadores;
+        - evitar crear assets repetidos para el mismo identificador técnico.
+
+        No normaliza `value`.
+        La normalización, si corresponde, debe ocurrir antes de llamar al repositorio.
+        """
+
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    name,
+                    kind,
+                    value,
+                    environment,
+                    criticality,
+                    created_at,
+                    updated_at
+                FROM exploration_assets
+                WHERE kind = ? AND value = ?
+                ORDER BY created_at ASC
+                LIMIT 1
+                """,
+                (kind.value, value),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._row_to_asset(row)
 
     def create_asset(self, payload: AssetCreate) -> AssetRead:
         now = self._now()
@@ -172,6 +200,20 @@ class ExplorationSQLiteRepository:
             )
 
         return finding
+
+    def _row_to_asset(self, row: sqlite3.Row) -> AssetRead:
+        """Convierte una fila SQLite de exploration_assets en AssetRead."""
+
+        return AssetRead(
+            id=row["id"],
+            name=row["name"],
+            kind=row["kind"],
+            value=row["value"],
+            environment=row["environment"],
+            criticality=row["criticality"],
+            createdAt=datetime.fromisoformat(row["created_at"]),
+            updatedAt=datetime.fromisoformat(row["updated_at"]),
+        )
 
     def _connect(self) -> sqlite3.Connection:
         connection = sqlite3.connect(self.database_path)
