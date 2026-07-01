@@ -680,6 +680,15 @@ export default function ExplorationPage() {
                     </span>
                   </div>
 
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
+                      Assets omitidos
+                    </p>
+                    <p className="mt-1 text-lg font-semibold text-slate-100">
+                      {nmapImportSummary?.assetsSkipped ?? 0}
+                    </p>
+                  </div>
+
                   <p className="mt-2 text-sm text-slate-300">
                     Estado: {finding.status}
                   </p>
