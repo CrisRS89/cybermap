@@ -16,12 +16,20 @@ class AssetRepository(Protocol):
     def create_asset(self, payload: AssetCreate):
         """Crea un asset y devuelve la entidad persistida."""
 
+    def find_asset_by_kind_and_value(
+        self,
+        kind: AssetKind,
+        value: str,
+    ):
+        """Devuelve un asset existente por kind + value o None."""
+
 
 @dataclass(frozen=True)
 class NmapImportSummary:
     """Resumen observable de una importación Nmap XML."""
 
     assets_created: int
+    assets_skipped: int
     hosts_seen: int
     open_ports_seen: int
     warnings: list[str] = field(default_factory=list)
@@ -55,14 +63,25 @@ class NmapImportService:
         parsed_result = parse_nmap_xml(xml_content)
 
         assets_created = 0
+        assets_skipped = 0
 
         for host in parsed_result.hosts:
             asset_payload = _host_to_asset_create(host)
+            existing_asset = self._asset_repository.find_asset_by_kind_and_value(
+                asset_payload.kind,
+                asset_payload.value,
+            )
+
+            if existing_asset is not None:
+                assets_skipped += 1
+                continue
+
             self._asset_repository.create_asset(asset_payload)
             assets_created += 1
 
         return NmapImportSummary(
             assets_created=assets_created,
+            assets_skipped=assets_skipped,
             hosts_seen=parsed_result.hosts_seen,
             open_ports_seen=parsed_result.open_ports_seen,
             warnings=parsed_result.warnings,

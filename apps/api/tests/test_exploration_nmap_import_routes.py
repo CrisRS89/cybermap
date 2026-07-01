@@ -71,6 +71,7 @@ def test_import_nmap_xml_returns_summary_and_creates_asset(
     assert response.json() == {
         "summary": {
             "assetsCreated": 1,
+            "assetsSkipped": 0,
             "hostsSeen": 1,
             "openPortsSeen": 2,
             "warnings": [],
@@ -241,6 +242,7 @@ def test_import_nmap_xml_realistic_scan_persists_multiple_assets(
     summary = body["summary"]
 
     assert summary["assetsCreated"] == 2
+    assert summary["assetsSkipped"] == 0
     assert summary["hostsSeen"] == 2
     assert summary["openPortsSeen"] == 3
     assert len(summary["warnings"]) == 1
@@ -264,3 +266,64 @@ def test_import_nmap_xml_realistic_scan_persists_multiple_assets(
     assert assets_by_value["192.168.1.20"]["name"] == "192.168.1.20"
     assert assets_by_value["192.168.1.20"]["environment"] == "unknown"
     assert assets_by_value["192.168.1.20"]["criticality"] == "medium"
+
+
+def test_import_nmap_xml_skips_existing_asset_by_kind_and_value(
+    client_with_temp_db: TestClient,
+) -> None:
+    """Evita duplicar assets cuando se importa dos veces el mismo host.
+
+    Regla MVP:
+    - si existe un asset con el mismo kind + value, no se crea otro;
+    - se incrementa assetsSkipped;
+    - el asset existente no se modifica.
+    """
+
+    xml = """
+    <nmaprun>
+      <host>
+        <status state="up" />
+        <address addr="192.168.1.10" addrtype="ipv4" />
+        <hostnames>
+          <hostname name="web-01.local" />
+        </hostnames>
+        <ports>
+          <port protocol="tcp" portid="80">
+            <state state="open" />
+            <service name="http" />
+          </port>
+        </ports>
+      </host>
+    </nmaprun>
+    """
+
+    first_response = client_with_temp_db.post(
+        "/exploration/imports/nmap",
+        json={"xml": xml},
+    )
+
+    assert first_response.status_code == 200
+    assert first_response.json()["summary"]["assetsCreated"] == 1
+    assert first_response.json()["summary"]["assetsSkipped"] == 0
+
+    second_response = client_with_temp_db.post(
+        "/exploration/imports/nmap",
+        json={"xml": xml},
+    )
+
+    assert second_response.status_code == 200
+    assert second_response.json()["summary"]["assetsCreated"] == 0
+    assert second_response.json()["summary"]["assetsSkipped"] == 1
+    assert second_response.json()["summary"]["hostsSeen"] == 1
+    assert second_response.json()["summary"]["openPortsSeen"] == 1
+
+    assets_response = client_with_temp_db.get("/exploration/assets")
+
+    assert assets_response.status_code == 200
+
+    assets = assets_response.json()["items"]
+
+    assert len(assets) == 1
+    assert assets[0]["kind"] == "ip"
+    assert assets[0]["value"] == "192.168.1.10"
+    assert assets[0]["name"] == "web-01.local"

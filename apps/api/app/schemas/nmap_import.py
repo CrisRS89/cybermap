@@ -21,6 +21,7 @@ class NmapImportSummaryResponse(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     assetsCreated: int
+    assetsSkipped: int
     hostsSeen: int
     openPortsSeen: int
     warnings: list[str]
