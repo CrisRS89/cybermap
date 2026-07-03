@@ -685,7 +685,7 @@ export default function ExplorationPage() {
                       Assets omitidos
                     </p>
                     <p className="mt-1 text-lg font-semibold text-slate-100">
-                      {nmapImportSummary?.assetsSkipped ?? 0}
+                      {nmapImportSummary.assetsSkipped}
                     </p>
                   </div>
 
