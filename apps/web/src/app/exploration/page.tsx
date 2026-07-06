@@ -556,11 +556,18 @@ export default function ExplorationPage() {
                 Resumen de importación
               </h3>
 
-              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
                 <div className="rounded-lg bg-slate-950/60 p-3">
                   <dt className="text-slate-400">Assets creados</dt>
                   <dd className="mt-1 text-2xl font-semibold text-slate-50">
                     {nmapImportSummary.assetsCreated}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-slate-950/60 p-3">
+                  <dt className="text-slate-400">Assets omitidos</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                    {nmapImportSummary.assetsSkipped}
                   </dd>
                 </div>
 
@@ -678,15 +685,6 @@ export default function ExplorationPage() {
                     <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
                       {finding.severity}
                     </span>
-                  </div>
-
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
-                      Assets omitidos
-                    </p>
-                    <p className="mt-1 text-lg font-semibold text-slate-100">
-                      {nmapImportSummary?.assetsSkipped ?? 0}
-                    </p>
                   </div>
 
                   <p className="mt-2 text-sm text-slate-300">
