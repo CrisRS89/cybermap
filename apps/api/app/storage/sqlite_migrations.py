@@ -3,6 +3,7 @@ import sqlite3
 
 
 EXPLORATION_INITIAL_VERSION = "001_exploration_initial"
+EXPLORATION_SERVICES_VERSION = "002_exploration_services"
 
 
 EXPLORATION_INITIAL_SQL = """
@@ -47,9 +48,40 @@ CREATE INDEX IF NOT EXISTS idx_exploration_findings_asset_id
     ON exploration_findings(asset_id);
 """
 
+EXPLORATION_SERVICES_SQL = """
+CREATE TABLE IF NOT EXISTS exploration_services (
+    id TEXT PRIMARY KEY,
+    asset_id TEXT NOT NULL,
+    protocol TEXT NOT NULL,
+    port INTEGER NOT NULL,
+    name TEXT NULL,
+    product TEXT NULL,
+    version TEXT NULL,
+    state TEXT NOT NULL,
+    source TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL,
+    FOREIGN KEY (asset_id)
+        REFERENCES exploration_assets(id)
+        ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_exploration_services_asset_id
+    ON exploration_services(asset_id);
+
+CREATE INDEX IF NOT EXISTS idx_exploration_services_port
+    ON exploration_services(port);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_exploration_services_asset_protocol_port
+    ON exploration_services(asset_id, protocol, port);
+"""
+
+
+
 
 MIGRATIONS: tuple[tuple[str, str], ...] = (
     (EXPLORATION_INITIAL_VERSION, EXPLORATION_INITIAL_SQL),
+    (EXPLORATION_SERVICES_VERSION, EXPLORATION_SERVICES_SQL),
 )
 
 

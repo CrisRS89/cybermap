@@ -173,7 +173,10 @@ def test_sqlite_repository_does_not_duplicate_migration_records(tmp_path):
             """
         ).fetchall()
 
-    assert rows == [("001_exploration_initial", 1)]
+    assert rows == [
+        ("001_exploration_initial", 1),
+        ("002_exploration_services", 1),
+    ]
 
 
 def test_find_asset_by_kind_and_value_returns_existing_asset(tmp_path):
