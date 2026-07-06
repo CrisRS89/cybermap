@@ -3,7 +3,16 @@ from pathlib import Path
 from uuid import uuid4
 import sqlite3
 
-from app.schemas.exploration import AssetCreate, AssetKind, AssetRead, FindingCreate, FindingRead
+from app.schemas.exploration import (
+    AssetCreate,
+    AssetKind,
+    AssetRead,
+    ExplorationServiceCreate,
+    ExplorationServiceRead,
+    FindingCreate,
+    FindingRead,
+    ServiceProtocol,
+)
 from app.storage.sqlite_migrations import apply_sqlite_migrations
 
 
@@ -119,6 +128,124 @@ class ExplorationSQLiteRepository:
 
         return asset
 
+    def list_services(self) -> list[ExplorationServiceRead]:
+        """Lista servicios detectados ordenados por creación.
+
+        Propósito:
+        - exponer superficie de ataque observable;
+        - permitir que capas superiores consulten puertos/servicios persistidos.
+        """
+
+        with self._connect() as connection:
+            rows = connection.execute(
+                """
+                SELECT
+                    id,
+                    asset_id,
+                    protocol,
+                    port,
+                    name,
+                    product,
+                    version,
+                    state,
+                    source,
+                    created_at,
+                    updated_at
+                FROM exploration_services
+                ORDER BY created_at ASC
+                """
+            ).fetchall()
+
+        return [self._row_to_service(row) for row in rows]
+
+    def find_service_by_asset_protocol_port(
+        self,
+        asset_id: str,
+        protocol: ServiceProtocol,
+        port: int,
+    ) -> ExplorationServiceRead | None:
+        """Busca un servicio existente por asset + protocolo + puerto.
+
+        Esta clave lógica evita duplicados al reimportar XML de Nmap.
+        """
+
+        with self._connect() as connection:
+            row = connection.execute(
+                """
+                SELECT
+                    id,
+                    asset_id,
+                    protocol,
+                    port,
+                    name,
+                    product,
+                    version,
+                    state,
+                    source,
+                    created_at,
+                    updated_at
+                FROM exploration_services
+                WHERE asset_id = ? AND protocol = ? AND port = ?
+                ORDER BY created_at ASC
+                LIMIT 1
+                """,
+                (asset_id, protocol.value, port),
+            ).fetchone()
+
+        if row is None:
+            return None
+
+        return self._row_to_service(row)
+
+    def create_service(
+        self,
+        payload: ExplorationServiceCreate,
+    ) -> ExplorationServiceRead:
+        """Crea un servicio detectado asociado a un asset existente."""
+
+        now = self._now()
+        service = ExplorationServiceRead(
+            id=f"service_{uuid4().hex}",
+            createdAt=now,
+            updatedAt=now,
+            **payload.model_dump(),
+        )
+
+        with self._connect() as connection:
+            connection.execute(
+                """
+                INSERT INTO exploration_services (
+                    id,
+                    asset_id,
+                    protocol,
+                    port,
+                    name,
+                    product,
+                    version,
+                    state,
+                    source,
+                    created_at,
+                    updated_at
+                )
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    service.id,
+                    service.assetId,
+                    service.protocol,
+                    service.port,
+                    service.name,
+                    service.product,
+                    service.version,
+                    service.state,
+                    service.source,
+                    service.createdAt.isoformat(),
+                    service.updatedAt.isoformat(),
+                ),
+            )
+
+        return service
+
     def list_findings(self) -> list[FindingRead]:
         with self._connect() as connection:
             rows = connection.execute(
@@ -200,6 +327,23 @@ class ExplorationSQLiteRepository:
             )
 
         return finding
+
+    def _row_to_service(self, row: sqlite3.Row) -> ExplorationServiceRead:
+        """Convierte una fila SQLite de exploration_services en ExplorationServiceRead."""
+
+        return ExplorationServiceRead(
+            id=row["id"],
+            assetId=row["asset_id"],
+            protocol=row["protocol"],
+            port=row["port"],
+            name=row["name"],
+            product=row["product"],
+            version=row["version"],
+            state=row["state"],
+            source=row["source"],
+            createdAt=datetime.fromisoformat(row["created_at"]),
+            updatedAt=datetime.fromisoformat(row["updated_at"]),
+        )
 
     def _row_to_asset(self, row: sqlite3.Row) -> AssetRead:
         """Convierte una fila SQLite de exploration_assets en AssetRead."""

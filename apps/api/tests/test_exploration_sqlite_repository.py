@@ -8,7 +8,11 @@ from app.schemas.exploration import (
     AssetCriticality,
     AssetEnvironment,
     AssetKind,
+    ExplorationServiceCreate,
     FindingCreate,
+    ServiceProtocol,
+    ServiceSource,
+    ServiceState,
 )
 
 
@@ -267,3 +271,124 @@ def test_find_asset_by_kind_and_value_does_not_match_different_value(tmp_path):
     )
 
     assert found is None
+
+
+def test_sqlite_repository_starts_with_no_services(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    assert repository.list_services() == []
+
+
+def test_sqlite_repository_creates_and_lists_service(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    asset = repository.create_asset(
+        AssetCreate(
+            name="Web server",
+            kind=AssetKind.IP,
+            value="192.168.1.10",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    created = repository.create_service(
+        ExplorationServiceCreate(
+            assetId=asset.id,
+            protocol=ServiceProtocol.TCP,
+            port=443,
+            name="https",
+            product="nginx",
+            version="1.24.0",
+            source=ServiceSource.NMAP,
+        )
+    )
+
+    services = repository.list_services()
+
+    assert created.id.startswith("service_")
+    assert len(services) == 1
+    assert services[0].id == created.id
+    assert services[0].assetId == asset.id
+    assert services[0].protocol == ServiceProtocol.TCP
+    assert services[0].port == 443
+    assert services[0].name == "https"
+    assert services[0].product == "nginx"
+    assert services[0].version == "1.24.0"
+    assert services[0].state == ServiceState.OPEN
+    assert services[0].source == ServiceSource.NMAP
+
+
+def test_sqlite_repository_finds_service_by_asset_protocol_port(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    asset = repository.create_asset(
+        AssetCreate(
+            name="Web server",
+            kind=AssetKind.IP,
+            value="192.168.1.10",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    created = repository.create_service(
+        ExplorationServiceCreate(
+            assetId=asset.id,
+            protocol=ServiceProtocol.TCP,
+            port=80,
+            name="http",
+            source=ServiceSource.NMAP,
+        )
+    )
+
+    found = repository.find_service_by_asset_protocol_port(
+        asset.id,
+        ServiceProtocol.TCP,
+        80,
+    )
+
+    assert found is not None
+    assert found.id == created.id
+    assert found.assetId == asset.id
+    assert found.protocol == ServiceProtocol.TCP
+    assert found.port == 80
+
+
+def test_sqlite_repository_returns_none_for_missing_service(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    found = repository.find_service_by_asset_protocol_port(
+        "asset_missing",
+        ServiceProtocol.TCP,
+        80,
+    )
+
+    assert found is None
+
+
+def test_sqlite_repository_rejects_duplicate_service_per_asset_protocol_port(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    asset = repository.create_asset(
+        AssetCreate(
+            name="Web server",
+            kind=AssetKind.IP,
+            value="192.168.1.10",
+            environment=AssetEnvironment.UNKNOWN,
+            criticality=AssetCriticality.MEDIUM,
+        )
+    )
+
+    payload = ExplorationServiceCreate(
+        assetId=asset.id,
+        protocol=ServiceProtocol.TCP,
+        port=80,
+        name="http",
+        source=ServiceSource.NMAP,
+    )
+
+    repository.create_service(payload)
+
+    with pytest.raises(sqlite3.IntegrityError):
+        repository.create_service(payload)
