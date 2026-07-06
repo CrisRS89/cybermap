@@ -1,7 +1,7 @@
 from datetime import datetime
 from enum import StrEnum
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 
 
 class AssetKind(StrEnum):
@@ -46,6 +46,80 @@ class FindingSource(StrEnum):
     MANUAL = "manual"
     IMPORT = "import"
     SCANNER = "scanner"
+
+
+class ServiceProtocol(StrEnum):
+    TCP = "tcp"
+    UDP = "udp"
+
+
+class ServiceState(StrEnum):
+    OPEN = "open"
+
+
+class ServiceSource(StrEnum):
+    MANUAL = "manual"
+    NMAP = "nmap"
+
+
+class ExplorationServiceCreate(BaseModel):
+    """Payload para crear un servicio detectado asociado a un asset."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    assetId: StrictStr
+    protocol: ServiceProtocol
+    port: int
+    name: StrictStr | None = None
+    product: StrictStr | None = None
+    version: StrictStr | None = None
+    state: ServiceState = ServiceState.OPEN
+    source: ServiceSource = ServiceSource.MANUAL
+
+    @field_validator("assetId")
+    @classmethod
+    def asset_id_must_not_be_empty(cls, value: str) -> str:
+        """Evita servicios sin relación con un asset existente."""
+
+        normalized = value.strip()
+
+        if not normalized:
+            raise ValueError("assetId is required")
+
+        return normalized
+
+    @field_validator("port")
+    @classmethod
+    def port_must_be_valid(cls, value: int) -> int:
+        """Valida el rango TCP/UDP estándar."""
+
+        if value < 1 or value > 65535:
+            raise ValueError("port must be between 1 and 65535")
+
+        return value
+
+    @field_validator("name", "product", "version")
+    @classmethod
+    def optional_text_must_be_normalized(cls, value: str | None) -> str | None:
+        """Normaliza textos opcionales vacíos a None."""
+
+        if value is None:
+            return None
+
+        normalized = value.strip()
+
+        if not normalized:
+            return None
+
+        return normalized
+
+
+class ExplorationServiceRead(ExplorationServiceCreate):
+    """Servicio detectado persistido y devuelto por la API."""
+
+    id: StrictStr
+    createdAt: datetime
+    updatedAt: datetime
 
 
 class AssetCreate(BaseModel):
