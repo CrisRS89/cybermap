@@ -101,6 +101,8 @@ def import_nmap_xml(payload: NmapImportRequest) -> NmapImportResponse:
         summary=NmapImportSummaryResponse(
             assetsCreated=summary.assets_created,
             assetsSkipped=summary.assets_skipped,
+            servicesCreated=summary.services_created,
+            servicesSkipped=summary.services_skipped,
             hostsSeen=summary.hosts_seen,
             openPortsSeen=summary.open_ports_seen,
             warnings=summary.warnings,

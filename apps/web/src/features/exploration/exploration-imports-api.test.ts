@@ -16,6 +16,9 @@ describe("exploration-imports-api", () => {
       json: async () => ({
         summary: {
           assetsCreated: 2,
+          assetsSkipped: 0,
+          servicesCreated: 3,
+          servicesSkipped: 0,
           hostsSeen: 2,
           openPortsSeen: 3,
           warnings: [],
@@ -28,6 +31,9 @@ describe("exploration-imports-api", () => {
     });
 
     expect(response.summary.assetsCreated).toBe(2);
+    expect(response.summary.assetsSkipped).toBe(0);
+    expect(response.summary.servicesCreated).toBe(3);
+    expect(response.summary.servicesSkipped).toBe(0);
     expect(response.summary.hostsSeen).toBe(2);
     expect(response.summary.openPortsSeen).toBe(3);
     expect(response.summary.warnings).toEqual([]);
@@ -52,6 +58,9 @@ describe("exploration-imports-api", () => {
       json: async () => ({
         summary: {
           assetsCreated: 1,
+          assetsSkipped: 0,
+          servicesCreated: 0,
+          servicesSkipped: 0,
           hostsSeen: 1,
           openPortsSeen: 0,
           warnings: ["Host without address ignored"],

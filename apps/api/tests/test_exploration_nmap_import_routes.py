@@ -72,6 +72,8 @@ def test_import_nmap_xml_returns_summary_and_creates_asset(
         "summary": {
             "assetsCreated": 1,
             "assetsSkipped": 0,
+            "servicesCreated": 2,
+            "servicesSkipped": 0,
             "hostsSeen": 1,
             "openPortsSeen": 2,
             "warnings": [],
@@ -327,3 +329,44 @@ def test_import_nmap_xml_skips_existing_asset_by_kind_and_value(
     assert assets[0]["kind"] == "ip"
     assert assets[0]["value"] == "192.168.1.10"
     assert assets[0]["name"] == "web-01.local"
+
+
+def test_import_nmap_xml_response_includes_service_summary(
+    client_with_temp_db: TestClient,
+) -> None:
+    xml = """
+    <nmaprun>
+      <host>
+        <address addr="172.16.0.10" addrtype="ipv4" />
+        <ports>
+          <port protocol="tcp" portid="22">
+            <state state="open" />
+            <service name="ssh" />
+          </port>
+          <port protocol="tcp" portid="80">
+            <state state="open" />
+            <service name="http" />
+          </port>
+        </ports>
+      </host>
+    </nmaprun>
+    """
+
+    first_response = client_with_temp_db.post(
+        "/exploration/imports/nmap",
+        json={"xml": xml},
+    )
+    second_response = client_with_temp_db.post(
+        "/exploration/imports/nmap",
+        json={"xml": xml},
+    )
+
+    assert first_response.status_code == 200
+    assert first_response.json()["summary"]["servicesCreated"] == 2
+    assert first_response.json()["summary"]["servicesSkipped"] == 0
+
+    assert second_response.status_code == 200
+    assert second_response.json()["summary"]["assetsCreated"] == 0
+    assert second_response.json()["summary"]["assetsSkipped"] == 1
+    assert second_response.json()["summary"]["servicesCreated"] == 0
+    assert second_response.json()["summary"]["servicesSkipped"] == 2

@@ -22,6 +22,8 @@ class NmapImportSummaryResponse(BaseModel):
 
     assetsCreated: int
     assetsSkipped: int
+    servicesCreated: int
+    servicesSkipped: int
     hostsSeen: int
     openPortsSeen: int
     warnings: list[str]

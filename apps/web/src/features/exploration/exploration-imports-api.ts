@@ -8,6 +8,8 @@ export type ImportNmapXmlRequest = {
 export type ImportNmapXmlSummary = {
   assetsCreated: number;
   assetsSkipped: number;
+  servicesCreated: number;
+  servicesSkipped: number;
   hostsSeen: number;
   openPortsSeen: number;
   warnings: string[];
