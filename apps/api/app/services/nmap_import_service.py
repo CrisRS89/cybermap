@@ -6,12 +6,15 @@ from app.schemas.exploration import (
     AssetCriticality,
     AssetEnvironment,
     AssetKind,
+    ExplorationServiceCreate,
+    ServiceProtocol,
+    ServiceSource,
 )
 from app.services.nmap_parser import NmapParseError, ParsedNmapHost, parse_nmap_xml
 
 
 class AssetRepository(Protocol):
-    """Puerto mínimo requerido para persistir assets desde importadores."""
+    """Puerto mínimo requerido para persistir datos desde importadores."""
 
     def create_asset(self, payload: AssetCreate):
         """Crea un asset y devuelve la entidad persistida."""
@@ -23,6 +26,17 @@ class AssetRepository(Protocol):
     ):
         """Devuelve un asset existente por kind + value o None."""
 
+    def create_service(self, payload: ExplorationServiceCreate):
+        """Crea un servicio detectado y devuelve la entidad persistida."""
+
+    def find_service_by_asset_protocol_port(
+        self,
+        asset_id: str,
+        protocol: ServiceProtocol,
+        port: int,
+    ):
+        """Devuelve un servicio existente por asset + protocolo + puerto o None."""
+
 
 @dataclass(frozen=True)
 class NmapImportSummary:
@@ -30,6 +44,8 @@ class NmapImportSummary:
 
     assets_created: int
     assets_skipped: int
+    services_created: int
+    services_skipped: int
     hosts_seen: int
     open_ports_seen: int
     warnings: list[str] = field(default_factory=list)
@@ -64,24 +80,50 @@ class NmapImportService:
 
         assets_created = 0
         assets_skipped = 0
+        services_created = 0
+        services_skipped = 0
 
         for host in parsed_result.hosts:
             asset_payload = _host_to_asset_create(host)
-            existing_asset = self._asset_repository.find_asset_by_kind_and_value(
+            asset = self._asset_repository.find_asset_by_kind_and_value(
                 asset_payload.kind,
                 asset_payload.value,
             )
 
-            if existing_asset is not None:
+            if asset is not None:
                 assets_skipped += 1
-                continue
+            else:
+                asset = self._asset_repository.create_asset(asset_payload)
+                assets_created += 1
 
-            self._asset_repository.create_asset(asset_payload)
-            assets_created += 1
+            for open_port in host.open_ports:
+                service_payload = _port_to_service_create(
+                    asset_id=asset.id,
+                    protocol=open_port.protocol,
+                    port=open_port.port,
+                    service_name=open_port.service,
+                )
+
+                existing_service = (
+                    self._asset_repository.find_service_by_asset_protocol_port(
+                        service_payload.assetId,
+                        service_payload.protocol,
+                        service_payload.port,
+                    )
+                )
+
+                if existing_service is not None:
+                    services_skipped += 1
+                    continue
+
+                self._asset_repository.create_service(service_payload)
+                services_created += 1
 
         return NmapImportSummary(
             assets_created=assets_created,
             assets_skipped=assets_skipped,
+            services_created=services_created,
+            services_skipped=services_skipped,
             hosts_seen=parsed_result.hosts_seen,
             open_ports_seen=parsed_result.open_ports_seen,
             warnings=parsed_result.warnings,
@@ -105,4 +147,34 @@ def _host_to_asset_create(host: ParsedNmapHost) -> AssetCreate:
         value=host.address,
         environment=AssetEnvironment.UNKNOWN,
         criticality=AssetCriticality.MEDIUM,
+    )
+
+
+def _port_to_service_create(
+    asset_id: str,
+    protocol: str,
+    port: int,
+    service_name: str | None,
+) -> ExplorationServiceCreate:
+    """Convierte un puerto abierto Nmap en ExplorationServiceCreate.
+
+    Decisión MVP:
+    - solo se persisten puertos abiertos porque el parser ya filtró por state=open;
+    - `product` y `version` quedan en None porque el parser todavía no los extrae;
+    - protocolos no soportados por el schema son rechazados explícitamente.
+    """
+
+    try:
+        parsed_protocol = ServiceProtocol(protocol)
+    except ValueError as error:
+        raise NmapParseError(f"Unsupported service protocol: {protocol}") from error
+
+    return ExplorationServiceCreate(
+        assetId=asset_id,
+        protocol=parsed_protocol,
+        port=port,
+        name=service_name,
+        product=None,
+        version=None,
+        source=ServiceSource.NMAP,
     )
