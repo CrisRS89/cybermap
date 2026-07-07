@@ -221,3 +221,34 @@ def test_sqlite_migrations_enforce_unique_service_per_asset_protocol_port(tmp_pa
             duplicated = False
 
     assert duplicated is True
+
+
+def test_sqlite_migrations_ignore_duplicate_version_registration(tmp_path):
+    database_path = tmp_path / "cybermap.db"
+
+    with sqlite3.connect(database_path) as connection:
+        apply_sqlite_migrations(connection)
+
+        connection.execute(
+            """
+            INSERT OR IGNORE INTO schema_migrations (version, applied_at)
+            VALUES (?, ?)
+            """,
+            (EXPLORATION_INITIAL_VERSION, "2026-01-01T00:00:00+00:00"),
+        )
+
+        apply_sqlite_migrations(connection)
+
+        rows = connection.execute(
+            """
+            SELECT version, COUNT(*)
+            FROM schema_migrations
+            GROUP BY version
+            ORDER BY version ASC
+            """
+        ).fetchall()
+
+    assert rows == [
+        (EXPLORATION_INITIAL_VERSION, 1),
+        (EXPLORATION_SERVICES_VERSION, 1),
+    ]

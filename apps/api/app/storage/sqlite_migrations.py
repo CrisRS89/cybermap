@@ -110,7 +110,7 @@ def apply_sqlite_migrations(connection: sqlite3.Connection) -> None:
         connection.executescript(sql)
         connection.execute(
             """
-            INSERT INTO schema_migrations (version, applied_at)
+            INSERT OR IGNORE INTO schema_migrations (version, applied_at)
             VALUES (?, ?)
             """,
             (version, datetime.now(UTC).isoformat()),
