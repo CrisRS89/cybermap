@@ -2,6 +2,9 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
+import { runAiAgent } from "@/features/ai/ai-api";
+import type { AgentRunResponse } from "@/features/ai/ai-types";
+
 import {
   createExplorationAsset,
   createExplorationFinding,
@@ -108,6 +111,9 @@ export default function ExplorationPage() {
     useState<ImportNmapXmlSummary | null>(null);
   const [isImportingNmap, setIsImportingNmap] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [aiAnalysis, setAiAnalysis] = useState<AgentRunResponse | null>(null);
+  const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
+  const [isRunningAiAnalysis, setIsRunningAiAnalysis] = useState(false);
 
   async function loadExplorationData() {
     setState((current) => ({
@@ -285,6 +291,37 @@ export default function ExplorationPage() {
     }
   }
 
+  async function handleRunAiAnalysis() {
+    setAiAnalysisError(null);
+    setAiAnalysis(null);
+    setIsRunningAiAnalysis(true);
+
+    try {
+      const response = await runAiAgent({
+        agentId: "exploration_analyst",
+        providerId: "mock",
+        model: "mock-security-model",
+        task: "Analizar superficie detectada",
+        scope: {
+          assetIds: [],
+          includeAssets: true,
+          includeServices: true,
+          includeFindings: true,
+        },
+      });
+
+      setAiAnalysis(response);
+    } catch (error) {
+      setAiAnalysisError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo ejecutar el análisis IA."
+      );
+    } finally {
+      setIsRunningAiAnalysis(false);
+    }
+  }
+
   const isEmpty =
     state.status === "ready" &&
     state.assets.length === 0 &&
@@ -309,7 +346,7 @@ export default function ExplorationPage() {
           </p>
         </div>
 
-        <div className="mt-5">
+        <div className="mt-5 flex flex-wrap gap-3">
           <button
             type="button"
             onClick={() => void loadExplorationData()}
@@ -317,12 +354,94 @@ export default function ExplorationPage() {
           >
             Refrescar datos
           </button>
+
+          <button
+            type="button"
+            onClick={() => void handleRunAiAnalysis()}
+            disabled={isRunningAiAnalysis || state.status !== "ready"}
+            className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isRunningAiAnalysis ? "Analizando..." : "Analizar con IA"}
+          </button>
         </div>
       </section>
 
       {formError ? (
         <section className="rounded-2xl border border-red-900/70 bg-red-950/30 p-4 text-sm text-red-100">
           {formError}
+        </section>
+      ) : null}
+
+      {aiAnalysisError ? (
+        <section className="rounded-2xl border border-red-900/70 bg-red-950/30 p-4 text-sm text-red-100">
+          {aiAnalysisError}
+        </section>
+      ) : null}
+
+      {aiAnalysis ? (
+        <section className="rounded-2xl border border-violet-900/70 bg-violet-950/30 p-6">
+          <div className="flex flex-col gap-2">
+            <p className="text-sm font-medium uppercase tracking-wide text-violet-300">
+              IA
+            </p>
+            <h2 className="text-xl font-semibold text-slate-50">
+              Análisis de superficie
+            </h2>
+            <p className="text-sm leading-6 text-slate-200">
+              {aiAnalysis.summary}
+            </p>
+          </div>
+
+          <dl className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+            <div className="rounded-lg bg-slate-950/60 p-3">
+              <dt className="text-slate-400">Assets usados</dt>
+              <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                {aiAnalysis.evidenceUsed.assets}
+              </dd>
+            </div>
+
+            <div className="rounded-lg bg-slate-950/60 p-3">
+              <dt className="text-slate-400">Servicios usados</dt>
+              <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                {aiAnalysis.evidenceUsed.services}
+              </dd>
+            </div>
+
+            <div className="rounded-lg bg-slate-950/60 p-3">
+              <dt className="text-slate-400">Findings usados</dt>
+              <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                {aiAnalysis.evidenceUsed.findings}
+              </dd>
+            </div>
+          </dl>
+
+          <div className="mt-4 grid gap-3">
+            {aiAnalysis.recommendations.map((recommendation) => (
+              <article
+                key={`${recommendation.title}-${recommendation.severity}`}
+                className="rounded-xl border border-slate-800 bg-slate-950/60 p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <h3 className="font-medium text-slate-100">
+                    {recommendation.title}
+                  </h3>
+                  <span className="rounded-full bg-violet-900/70 px-3 py-1 text-xs text-violet-100">
+                    {recommendation.severity}
+                  </span>
+                </div>
+
+                <p className="mt-2 text-sm leading-6 text-slate-300">
+                  {recommendation.rationale}
+                </p>
+
+                {recommendation.suggestedFinding ? (
+                  <p className="mt-2 text-xs uppercase tracking-wide text-violet-300">
+                    Sugerido como finding
+                  </p>
+                ) : null}
+              </article>
+            ))}
+          </div>
         </section>
       ) : null}
 
