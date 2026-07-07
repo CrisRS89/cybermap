@@ -556,7 +556,7 @@ export default function ExplorationPage() {
                 Resumen de importación
               </h3>
 
-              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
+              <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-6">
                 <div className="rounded-lg bg-slate-950/60 p-3">
                   <dt className="text-slate-400">Assets creados</dt>
                   <dd className="mt-1 text-2xl font-semibold text-slate-50">
@@ -568,6 +568,20 @@ export default function ExplorationPage() {
                   <dt className="text-slate-400">Assets omitidos</dt>
                   <dd className="mt-1 text-2xl font-semibold text-slate-50">
                     {nmapImportSummary.assetsSkipped}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-slate-950/60 p-3">
+                  <dt className="text-slate-400">Servicios creados</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                    {nmapImportSummary.servicesCreated}
+                  </dd>
+                </div>
+
+                <div className="rounded-lg bg-slate-950/60 p-3">
+                  <dt className="text-slate-400">Servicios omitidos</dt>
+                  <dd className="mt-1 text-2xl font-semibold text-slate-50">
+                    {nmapImportSummary.servicesSkipped}
                   </dd>
                 </div>
 
