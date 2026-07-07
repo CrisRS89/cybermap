@@ -16,6 +16,8 @@ class ParsedNmapPort:
     port: int
     protocol: str
     service: str | None = None
+    product: str | None = None
+    version: str | None = None
 
 
 @dataclass(frozen=True)
@@ -165,12 +167,24 @@ def _extract_open_ports(host_element: ET.Element) -> list[ParsedNmapPort]:
                 if service_element is not None
                 else None
             )
+            service_product = (
+                service_element.attrib.get("product")
+                if service_element is not None
+                else None
+            )
+            service_version = (
+                service_element.attrib.get("version")
+                if service_element is not None
+                else None
+            )
 
             ports.append(
                 ParsedNmapPort(
                     port=port_number,
                     protocol=protocol,
                     service=service_name,
+                    product=service_product,
+                    version=service_version,
                 )
             )
 

@@ -102,6 +102,8 @@ class NmapImportService:
                     protocol=open_port.protocol,
                     port=open_port.port,
                     service_name=open_port.service,
+                    product=open_port.product,
+                    version=open_port.version,
                 )
 
                 existing_service = (
@@ -155,12 +157,14 @@ def _port_to_service_create(
     protocol: str,
     port: int,
     service_name: str | None,
+    product: str | None,
+    version: str | None,
 ) -> ExplorationServiceCreate:
     """Convierte un puerto abierto Nmap en ExplorationServiceCreate.
 
-    Decisión MVP:
+    Decisión:
     - solo se persisten puertos abiertos porque el parser ya filtró por state=open;
-    - `product` y `version` quedan en None porque el parser todavía no los extrae;
+    - `product` y `version` se propagan si Nmap los informó;
     - protocolos no soportados por el schema son rechazados explícitamente.
     """
 
@@ -174,7 +178,7 @@ def _port_to_service_create(
         protocol=parsed_protocol,
         port=port,
         name=service_name,
-        product=None,
-        version=None,
+        product=product,
+        version=version,
         source=ServiceSource.NMAP,
     )

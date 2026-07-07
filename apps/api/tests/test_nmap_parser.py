@@ -27,7 +27,7 @@ def test_parse_nmap_xml_extracts_host_address_hostname_and_open_ports():
           </port>
           <port protocol="tcp" portid="443">
             <state state="open"/>
-            <service name="https"/>
+            <service name="https" product="nginx" version="1.24.0"/>
           </port>
         </ports>
       </host>
@@ -43,9 +43,18 @@ def test_parse_nmap_xml_extracts_host_address_hostname_and_open_ports():
     host = result.hosts[0]
     assert host.address == "192.168.1.10"
     assert host.hostnames == ["server.local"]
-    assert [(port.port, port.protocol, port.service) for port in host.open_ports] == [
-        (22, "tcp", "ssh"),
-        (443, "tcp", "https"),
+    assert [
+        (
+            port.port,
+            port.protocol,
+            port.service,
+            port.product,
+            port.version,
+        )
+        for port in host.open_ports
+    ] == [
+        (22, "tcp", "ssh", None, None),
+        (443, "tcp", "https", "nginx", "1.24.0"),
     ]
 
 

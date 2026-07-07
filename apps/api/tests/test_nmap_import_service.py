@@ -30,7 +30,7 @@ def test_nmap_import_service_creates_asset_from_host_with_hostname(tmp_path):
           </port>
           <port protocol="tcp" portid="443">
             <state state="open"/>
-            <service name="https"/>
+            <service name="https" product="nginx" version="1.24.0"/>
           </port>
         </ports>
       </host>
@@ -156,7 +156,7 @@ def test_nmap_import_service_creates_services_from_open_ports(tmp_path):
           </port>
           <port protocol="tcp" portid="443">
             <state state="open"/>
-            <service name="https"/>
+            <service name="https" product="nginx" version="1.24.0"/>
           </port>
         </ports>
       </host>
@@ -176,9 +176,12 @@ def test_nmap_import_service_creates_services_from_open_ports(tmp_path):
     assert len(assets) == 1
     assert len(services) == 2
 
-    assert [(item.port, item.protocol, item.name) for item in services] == [
-        (22, ServiceProtocol.TCP, "ssh"),
-        (443, ServiceProtocol.TCP, "https"),
+    assert [
+        (item.port, item.protocol, item.name, item.product, item.version)
+        for item in services
+    ] == [
+        (22, ServiceProtocol.TCP, "ssh", None, None),
+        (443, ServiceProtocol.TCP, "https", "nginx", "1.24.0"),
     ]
     assert all(item.assetId == assets[0].id for item in services)
     assert all(item.state == ServiceState.OPEN for item in services)
@@ -224,3 +227,30 @@ def test_nmap_import_service_skips_existing_services_on_reimport(tmp_path):
     assert services[0].protocol == ServiceProtocol.TCP
     assert services[0].port == 80
     assert services[0].name == "http"
+
+
+def test_nmap_import_service_persists_service_product_and_version(tmp_path):
+    repository = ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+    service = NmapImportService(repository)
+
+    xml = """<nmaprun>
+      <host>
+        <address addr="192.168.1.50" addrtype="ipv4"/>
+        <ports>
+          <port protocol="tcp" portid="443">
+            <state state="open"/>
+            <service name="https" product="nginx" version="1.24.0"/>
+          </port>
+        </ports>
+      </host>
+    </nmaprun>
+    """
+
+    summary = service.import_xml(xml)
+    services = repository.list_services()
+
+    assert summary.services_created == 1
+    assert len(services) == 1
+    assert services[0].name == "https"
+    assert services[0].product == "nginx"
+    assert services[0].version == "1.24.0"
