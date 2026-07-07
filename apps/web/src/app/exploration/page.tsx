@@ -7,6 +7,7 @@ import {
   createExplorationFinding,
   listExplorationAssets,
   listExplorationFindings,
+  listExplorationServices,
 } from "@/features/exploration/exploration-api";
 import {
   importNmapXml,
@@ -18,6 +19,7 @@ import type {
   AssetKind,
   ExplorationAsset,
   ExplorationFinding,
+  ExplorationService,
   FindingSeverity,
 } from "@/features/exploration/exploration-types";
 
@@ -26,18 +28,21 @@ type ExplorationPageState =
       status: "loading";
       assets: ExplorationAsset[];
       findings: ExplorationFinding[];
+      services: ExplorationService[];
       error: null;
     }
   | {
       status: "ready";
       assets: ExplorationAsset[];
       findings: ExplorationFinding[];
+      services: ExplorationService[];
       error: null;
     }
   | {
       status: "error";
       assets: ExplorationAsset[];
       findings: ExplorationFinding[];
+      services: ExplorationService[];
       error: string;
     };
 
@@ -89,6 +94,7 @@ export default function ExplorationPage() {
     status: "loading",
     assets: [],
     findings: [],
+    services: [],
     error: null,
   });
 
@@ -108,19 +114,22 @@ export default function ExplorationPage() {
       status: "loading",
       assets: current.assets,
       findings: current.findings,
+      services: current.services,
       error: null,
     }));
 
     try {
-      const [assets, findings] = await Promise.all([
+      const [assets, findings, services] = await Promise.all([
         listExplorationAssets(),
         listExplorationFindings(),
+        listExplorationServices(),
       ]);
 
       setState({
         status: "ready",
         assets,
         findings,
+        services,
         error: null,
       });
     } catch (error) {
@@ -128,6 +137,7 @@ export default function ExplorationPage() {
         status: "error",
         assets: [],
         findings: [],
+        services: [],
         error:
           error instanceof Error
             ? error.message
@@ -141,9 +151,10 @@ export default function ExplorationPage() {
 
     async function loadInitialExplorationData() {
       try {
-        const [assets, findings] = await Promise.all([
+        const [assets, findings, services] = await Promise.all([
           listExplorationAssets(),
           listExplorationFindings(),
+          listExplorationServices(),
         ]);
 
         if (!isMounted) {
@@ -154,6 +165,7 @@ export default function ExplorationPage() {
           status: "ready",
           assets,
           findings,
+          services,
           error: null,
         });
       } catch (error) {
@@ -165,6 +177,7 @@ export default function ExplorationPage() {
           status: "error",
           assets: [],
           findings: [],
+          services: [],
           error:
             error instanceof Error
               ? error.message
@@ -275,7 +288,8 @@ export default function ExplorationPage() {
   const isEmpty =
     state.status === "ready" &&
     state.assets.length === 0 &&
-    state.findings.length === 0;
+    state.findings.length === 0 &&
+    state.services.length === 0;
 
   return (
     <main className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10">
@@ -676,6 +690,57 @@ export default function ExplorationPage() {
                 </tbody>
               </table>
             </div>
+          </section>
+
+          <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6 lg:col-span-2">
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-semibold text-slate-50">
+                Servicios detectados
+              </h2>
+              <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+                {state.services.length}
+              </span>
+            </div>
+
+            {state.services.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="text-xs uppercase text-slate-400">
+                    <tr>
+                      <th className="py-2 pr-4">Asset</th>
+                      <th className="py-2 pr-4">Protocolo</th>
+                      <th className="py-2 pr-4">Puerto</th>
+                      <th className="py-2 pr-4">Servicio</th>
+                      <th className="py-2 pr-4">Producto</th>
+                      <th className="py-2 pr-4">Versión</th>
+                      <th className="py-2 pr-4">Estado</th>
+                      <th className="py-2 pr-4">Fuente</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-800 text-slate-200">
+                    {state.services.map((service) => (
+                      <tr key={service.id}>
+                        <td className="py-3 pr-4">
+                          {getAssetLabel(service.assetId, state.assets)}
+                        </td>
+                        <td className="py-3 pr-4">{service.protocol}</td>
+                        <td className="py-3 pr-4">{service.port}</td>
+                        <td className="py-3 pr-4">{service.name ?? "-"}</td>
+                        <td className="py-3 pr-4">{service.product ?? "-"}</td>
+                        <td className="py-3 pr-4">{service.version ?? "-"}</td>
+                        <td className="py-3 pr-4">{service.state}</td>
+                        <td className="py-3 pr-4">{service.source}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-slate-400">
+                Todavía no hay servicios detectados. Importá un XML de Nmap con
+                puertos abiertos para poblar esta tabla.
+              </p>
+            )}
           </section>
 
           <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
