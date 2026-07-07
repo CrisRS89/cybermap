@@ -202,3 +202,67 @@ def test_exploration_rejects_finding_associated_with_missing_asset(tmp_path):
         }
     finally:
         exploration.get_exploration_service = original
+
+
+def test_exploration_services_flow(tmp_path):
+    def override_service():
+        return ExplorationSQLiteRepository(tmp_path / "cybermap.db")
+
+    original = exploration.get_exploration_service
+    exploration.get_exploration_service = override_service
+
+    try:
+        client = TestClient(app)
+
+        initial = client.get("/exploration/services")
+        assert initial.status_code == 200
+        assert initial.json() == {"items": []}
+
+        asset_response = client.post(
+            "/exploration/assets",
+            json={
+                "name": "Service Host",
+                "kind": "ip",
+                "value": "192.168.1.10",
+                "environment": "dev",
+                "criticality": "medium",
+            },
+        )
+
+        assert asset_response.status_code == 200
+        asset_id = asset_response.json()["id"]
+
+        repository = override_service()
+        created_service = repository.create_service(
+            payload=__import__(
+                "app.schemas.exploration",
+                fromlist=["ExplorationServiceCreate"],
+            ).ExplorationServiceCreate(
+                assetId=asset_id,
+                protocol="tcp",
+                port=443,
+                name="https",
+                product="nginx",
+                version="1.24.0",
+                source="nmap",
+            )
+        )
+
+        listed = client.get("/exploration/services")
+
+        assert created_service.id.startswith("service_")
+        assert listed.status_code == 200
+
+        items = listed.json()["items"]
+        assert len(items) == 1
+        assert items[0]["id"] == created_service.id
+        assert items[0]["assetId"] == asset_id
+        assert items[0]["protocol"] == "tcp"
+        assert items[0]["port"] == 443
+        assert items[0]["name"] == "https"
+        assert items[0]["product"] == "nginx"
+        assert items[0]["version"] == "1.24.0"
+        assert items[0]["state"] == "open"
+        assert items[0]["source"] == "nmap"
+    finally:
+        exploration.get_exploration_service = original

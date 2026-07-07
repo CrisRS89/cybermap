@@ -5,6 +5,7 @@ import {
   createExplorationFinding,
   listExplorationAssets,
   listExplorationFindings,
+  listExplorationServices,
 } from "./exploration-api";
 
 const originalFetch = globalThis.fetch;
@@ -150,6 +151,46 @@ describe("exploration-api", () => {
           severity: "high",
           assetId: "asset_1",
           evidence: "evidence",
+        }),
+      })
+    );
+  });
+
+  it("lists exploration services", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            id: "service_1",
+            assetId: "asset_1",
+            protocol: "tcp",
+            port: 443,
+            name: "https",
+            product: "nginx",
+            version: "1.24.0",
+            state: "open",
+            source: "nmap",
+            createdAt: "2026-01-01T00:00:00Z",
+            updatedAt: "2026-01-01T00:00:00Z",
+          },
+        ],
+      }),
+    } as Response);
+
+    const services = await listExplorationServices();
+
+    expect(services).toHaveLength(1);
+    expect(services[0].assetId).toBe("asset_1");
+    expect(services[0].protocol).toBe("tcp");
+    expect(services[0].port).toBe(443);
+    expect(services[0].name).toBe("https");
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "http://localhost:8000/exploration/services",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
         }),
       })
     );

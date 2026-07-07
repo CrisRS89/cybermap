@@ -8,6 +8,7 @@ from app.schemas.exploration import (
     AssetCreate,
     AssetListResponse,
     AssetRead,
+    ExplorationServiceListResponse,
     FindingCreate,
     FindingListResponse,
     FindingRead,
@@ -48,6 +49,14 @@ def create_asset(payload: AssetCreate) -> AssetRead:
 
     service = get_exploration_service()
     return service.create_asset(payload)
+
+
+@router.get("/services", response_model=ExplorationServiceListResponse)
+def list_services() -> ExplorationServiceListResponse:
+    """Lista servicios detectados asociados a assets."""
+
+    service = get_exploration_service()
+    return ExplorationServiceListResponse(items=service.list_services())
 
 
 @router.get("/findings", response_model=FindingListResponse)

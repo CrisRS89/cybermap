@@ -5,6 +5,8 @@ import type {
   ExplorationAssetListResponse,
   ExplorationFinding,
   ExplorationFindingListResponse,
+  ExplorationService,
+  ExplorationServiceListResponse,
 } from "./exploration-types";
 
 const API_BASE_URL =
@@ -61,4 +63,13 @@ export async function createExplorationFinding(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+
+export async function listExplorationServices(): Promise<ExplorationService[]> {
+  const response = await requestJson<ExplorationServiceListResponse>(
+    "/exploration/services"
+  );
+
+  return response.items;
 }

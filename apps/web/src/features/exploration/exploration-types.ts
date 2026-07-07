@@ -15,6 +15,12 @@ export type FindingStatus =
 
 export type FindingSource = "manual" | "import" | "scanner";
 
+export type ServiceProtocol = "tcp" | "udp";
+
+export type ServiceState = "open";
+
+export type ServiceSource = "manual" | "nmap";
+
 export type ExplorationAsset = {
   id: string;
   name: string;
@@ -36,6 +42,20 @@ export type ExplorationFinding = {
   source: FindingSource;
   evidence: string;
   recommendation: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ExplorationService = {
+  id: string;
+  assetId: string;
+  protocol: ServiceProtocol;
+  port: number;
+  name: string | null;
+  product: string | null;
+  version: string | null;
+  state: ServiceState;
+  source: ServiceSource;
   createdAt: string;
   updatedAt: string;
 };
@@ -65,4 +85,8 @@ export type ExplorationAssetListResponse = {
 
 export type ExplorationFindingListResponse = {
   items: ExplorationFinding[];
+};
+
+export type ExplorationServiceListResponse = {
+  items: ExplorationService[];
 };

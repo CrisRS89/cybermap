@@ -171,3 +171,7 @@ class AssetListResponse(BaseModel):
 
 class FindingListResponse(BaseModel):
     items: list[FindingRead]
+
+
+class ExplorationServiceListResponse(BaseModel):
+    items: list[ExplorationServiceRead]
