@@ -29,6 +29,7 @@ export type AgentRunEvidenceUsed = {
 };
 
 export type AgentRunResponse = {
+  runId: string;
   agentId: string;
   providerId: string;
   model: string;
@@ -36,4 +37,22 @@ export type AgentRunResponse = {
   summary: string;
   recommendations: AgentRecommendation[];
   evidenceUsed: AgentRunEvidenceUsed;
+};
+
+export type AiRunHistoryItem = {
+  id: string;
+  agentId: string;
+  providerId: string;
+  model: string;
+  task: string;
+  status: AgentRunStatus;
+  summary: string;
+  recommendations: AgentRecommendation[];
+  evidenceUsed: AgentRunEvidenceUsed;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type AiRunListResponse = {
+  items: AiRunHistoryItem[];
 };

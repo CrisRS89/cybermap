@@ -1,4 +1,9 @@
-import type { AgentRunRequest, AgentRunResponse } from "./ai-types";
+import type {
+  AgentRunRequest,
+  AgentRunResponse,
+  AiRunHistoryItem,
+  AiRunListResponse,
+} from "./ai-types";
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
@@ -29,4 +34,10 @@ export async function runAiAgent(
     method: "POST",
     body: JSON.stringify(payload),
   });
+}
+
+export async function listAiRuns(): Promise<AiRunHistoryItem[]> {
+  const response = await requestJson<AiRunListResponse>("/ai/runs");
+
+  return response.items;
 }

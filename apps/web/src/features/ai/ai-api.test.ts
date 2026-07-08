@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { runAiAgent } from "./ai-api";
+import { listAiRuns, runAiAgent } from "./ai-api";
 
 const originalFetch = globalThis.fetch;
 
@@ -14,6 +14,7 @@ describe("ai-api", () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
+        runId: "ai_run_1",
         agentId: "exploration_analyst",
         providerId: "mock",
         model: "mock-security-model",
@@ -48,6 +49,7 @@ describe("ai-api", () => {
       },
     });
 
+    expect(response.runId).toBe("ai_run_1");
     expect(response.agentId).toBe("exploration_analyst");
     expect(response.providerId).toBe("mock");
     expect(response.status).toBe("completed");
@@ -86,6 +88,7 @@ describe("ai-api", () => {
     globalThis.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => ({
+        runId: "ai_run_1",
         agentId: "exploration_analyst",
         providerId: "mock",
         model: "mock-security-model",
@@ -107,6 +110,7 @@ describe("ai-api", () => {
       task: "Analizar superficie detectada",
     });
 
+    expect(response.runId).toBe("ai_run_1");
     expect(response.status).toBe("completed");
 
     expect(globalThis.fetch).toHaveBeenCalledWith(
@@ -121,6 +125,69 @@ describe("ai-api", () => {
         }),
       })
     );
+  });
+
+  it("lists AI run history", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [
+          {
+            id: "ai_run_1",
+            agentId: "exploration_analyst",
+            providerId: "mock",
+            model: "mock-security-model",
+            task: "Analizar superficie detectada",
+            status: "completed",
+            summary: "Análisis mock generado por CyberMap.",
+            recommendations: [
+              {
+                title: "Revisar exposición de servicios HTTP/HTTPS",
+                severity: "medium",
+                rationale: "Se detectaron servicios web expuestos.",
+                suggestedFinding: true,
+              },
+            ],
+            evidenceUsed: {
+              assets: 4,
+              services: 3,
+              findings: 0,
+            },
+            createdAt: "2026-01-01T00:00:00Z",
+            updatedAt: "2026-01-01T00:00:00Z",
+          },
+        ],
+      }),
+    } as Response);
+
+    const runs = await listAiRuns();
+
+    expect(runs).toHaveLength(1);
+    expect(runs[0].id).toBe("ai_run_1");
+    expect(runs[0].agentId).toBe("exploration_analyst");
+    expect(runs[0].evidenceUsed.services).toBe(3);
+
+    expect(globalThis.fetch).toHaveBeenCalledWith(
+      "http://localhost:8000/ai/runs",
+      expect.objectContaining({
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+        }),
+      })
+    );
+  });
+
+  it("lists empty AI run history", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        items: [],
+      }),
+    } as Response);
+
+    const runs = await listAiRuns();
+
+    expect(runs).toEqual([]);
   });
 
   it("throws when the AI API responds with an error", async () => {
@@ -140,5 +207,15 @@ describe("ai-api", () => {
         task: "Analizar superficie detectada",
       })
     ).rejects.toThrow("AI API request failed: 400");
+  });
+
+  it("throws when the AI history API responds with an error", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 500,
+      json: async () => ({}),
+    } as Response);
+
+    await expect(listAiRuns()).rejects.toThrow("AI API request failed: 500");
   });
 });
