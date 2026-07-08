@@ -213,6 +213,10 @@ export default function ExplorationPage() {
   const [nmapXml, setNmapXml] = useState("");
   const [nmapCommandForm, setNmapCommandForm] =
     useState<NmapCommandFormState>(initialNmapCommandForm);
+  const [copiedNmapCommand, setCopiedNmapCommand] = useState(false);
+  const [copyNmapCommandError, setCopyNmapCommandError] = useState<
+    string | null
+  >(null);
   const [nmapImportSummary, setNmapImportSummary] =
     useState<ImportNmapXmlSummary | null>(null);
   const [isImportingNmap, setIsImportingNmap] = useState(false);
@@ -408,6 +412,30 @@ export default function ExplorationPage() {
       );
     } finally {
       setIsSubmittingFinding(false);
+    }
+  }
+
+  async function handleCopyNmapCommand() {
+    setCopiedNmapCommand(false);
+    setCopyNmapCommandError(null);
+
+    if (!generatedNmapCommand) {
+      setCopyNmapCommandError("No hay comando Nmap para copiar.");
+      return;
+    }
+
+    if (!navigator.clipboard) {
+      setCopyNmapCommandError(
+        "El portapapeles no está disponible en este navegador."
+      );
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(generatedNmapCommand);
+      setCopiedNmapCommand(true);
+    } catch {
+      setCopyNmapCommandError("No se pudo copiar el comando Nmap.");
     }
   }
 
@@ -962,6 +990,8 @@ export default function ExplorationPage() {
                   onChange={(event) => {
                     const targetKind = event.target.value as NmapTargetKind;
 
+                    setCopiedNmapCommand(false);
+                    setCopyNmapCommandError(null);
                     setNmapCommandForm((current) => ({
                       ...current,
                       targetKind,
@@ -981,12 +1011,14 @@ export default function ExplorationPage() {
                 Objetivo
                 <input
                   value={nmapCommandForm.target}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setCopiedNmapCommand(false);
+                    setCopyNmapCommandError(null);
                     setNmapCommandForm((current) => ({
                       ...current,
                       target: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                   className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
                   placeholder={getNmapTargetPlaceholder(
                     nmapCommandForm.targetKind
@@ -998,12 +1030,14 @@ export default function ExplorationPage() {
                 Perfil
                 <select
                   value={nmapCommandForm.scanProfile}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setCopiedNmapCommand(false);
+                    setCopyNmapCommandError(null);
                     setNmapCommandForm((current) => ({
                       ...current,
                       scanProfile: event.target.value as NmapScanProfile,
-                    }))
-                  }
+                    }));
+                  }}
                   className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
                 >
                   <option value="basic">básico</option>
@@ -1017,12 +1051,14 @@ export default function ExplorationPage() {
                 Archivo XML
                 <input
                   value={nmapCommandForm.outputFile}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    setCopiedNmapCommand(false);
+                    setCopyNmapCommandError(null);
                     setNmapCommandForm((current) => ({
                       ...current,
                       outputFile: event.target.value,
-                    }))
-                  }
+                    }));
+                  }}
                   className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
                   placeholder="scan.xml"
                 />
@@ -1033,12 +1069,14 @@ export default function ExplorationPage() {
                   Puertos
                   <input
                     value={nmapCommandForm.ports}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      setCopiedNmapCommand(false);
+                      setCopyNmapCommandError(null);
                       setNmapCommandForm((current) => ({
                         ...current,
                         ports: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
                     placeholder="22,80,443,8000,8080"
                   />
@@ -1047,9 +1085,20 @@ export default function ExplorationPage() {
             </div>
 
             <div className="mt-4">
-              <p className="text-sm font-medium text-slate-300">
-                Comando generado
-              </p>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <p className="text-sm font-medium text-slate-300">
+                  Comando generado
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() => void handleCopyNmapCommand()}
+                  disabled={!generatedNmapCommand}
+                  className="rounded-lg border border-cyan-700 bg-cyan-950/40 px-3 py-2 text-xs font-medium text-cyan-100 transition hover:bg-cyan-900/60 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {copiedNmapCommand ? "Comando copiado" : "Copiar comando"}
+                </button>
+              </div>
 
               {generatedNmapCommand ? (
                 <pre className="mt-2 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-cyan-100">
@@ -1060,6 +1109,12 @@ export default function ExplorationPage() {
                   Completá objetivo y archivo XML para generar el comando.
                 </p>
               )}
+
+              {copyNmapCommandError ? (
+                <p className="mt-2 rounded-lg border border-red-900/70 bg-red-950/30 p-3 text-sm text-red-100">
+                  {copyNmapCommandError}
+                </p>
+              ) : null}
             </div>
           </div>
         </section>
