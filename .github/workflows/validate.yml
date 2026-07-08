@@ -41,5 +41,41 @@ jobs:
       - name: Make validation script executable
         run: chmod +x ./scripts/validate-local.sh
 
-      - name: Run validation
+      - name: Run validation (script)
         run: ./scripts/validate-local.sh
+
+      - name: Install backend requirements for reports
+        run: pip install -r apps/api/requirements.txt
+
+      - name: Install pytest-cov
+        run: pip install pytest-cov
+
+      - name: Run pytest with coverage
+        run: |
+          mkdir -p apps/api/reports
+          python -m pytest apps/api --cov=apps/api --cov-report=xml:apps/api/reports/coverage.xml --cov-report=html:apps/api/reports/htmlcov --junitxml=apps/api/reports/pytest.xml
+
+      - name: Run frontend tests (JSON reporter)
+        run: |
+          mkdir -p apps/web/reports
+          npm --prefix apps/web run test -- --reporter json > apps/web/reports/vitest.json || true
+
+      - name: Upload backend coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: apps/api/reports
+
+      - name: Upload frontend test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: apps/web/reports
+
+      - name: Upload validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-log
+          path: |
+            ./validation.log
