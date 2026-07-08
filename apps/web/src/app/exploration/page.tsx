@@ -2,8 +2,11 @@
 
 import { FormEvent, useEffect, useState } from "react";
 
-import { runAiAgent } from "@/features/ai/ai-api";
-import type { AgentRunResponse } from "@/features/ai/ai-types";
+import { listAiRuns, runAiAgent } from "@/features/ai/ai-api";
+import type {
+  AgentRunResponse,
+  AiRunHistoryItem,
+} from "@/features/ai/ai-types";
 
 import {
   createExplorationAsset,
@@ -114,6 +117,9 @@ export default function ExplorationPage() {
   const [aiAnalysis, setAiAnalysis] = useState<AgentRunResponse | null>(null);
   const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
   const [isRunningAiAnalysis, setIsRunningAiAnalysis] = useState(false);
+  const [aiRuns, setAiRuns] = useState<AiRunHistoryItem[]>([]);
+  const [aiRunsError, setAiRunsError] = useState<string | null>(null);
+  const [isLoadingAiRuns, setIsLoadingAiRuns] = useState(false);
 
   async function loadExplorationData() {
     setState((current) => ({
@@ -149,6 +155,24 @@ export default function ExplorationPage() {
             ? error.message
             : "No se pudo cargar Exploration.",
       });
+    }
+  }
+
+  async function loadAiRuns() {
+    setIsLoadingAiRuns(true);
+    setAiRunsError(null);
+
+    try {
+      const runs = await listAiRuns();
+      setAiRuns(runs);
+    } catch (error) {
+      setAiRunsError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo cargar el historial IA."
+      );
+    } finally {
+      setIsLoadingAiRuns(false);
     }
   }
 
@@ -192,7 +216,31 @@ export default function ExplorationPage() {
       }
     }
 
+    async function loadInitialAiRuns() {
+      try {
+        const runs = await listAiRuns();
+
+        if (!isMounted) {
+          return;
+        }
+
+        setAiRuns(runs);
+        setAiRunsError(null);
+      } catch (error) {
+        if (!isMounted) {
+          return;
+        }
+
+        setAiRunsError(
+          error instanceof Error
+            ? error.message
+            : "No se pudo cargar el historial IA."
+        );
+      }
+    }
+
     void loadInitialExplorationData();
+    void loadInitialAiRuns();
 
     return () => {
       isMounted = false;
@@ -311,6 +359,7 @@ export default function ExplorationPage() {
       });
 
       setAiAnalysis(response);
+      await loadAiRuns();
     } catch (error) {
       setAiAnalysisError(
         error instanceof Error
@@ -444,6 +493,100 @@ export default function ExplorationPage() {
           </div>
         </section>
       ) : null}
+
+      <section className="rounded-2xl border border-slate-800 bg-slate-950/70 p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium uppercase tracking-wide text-violet-300">
+              Historial IA
+            </p>
+            <h2 className="mt-1 text-xl font-semibold text-slate-50">
+              Ejecuciones recientes
+            </h2>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => void loadAiRuns()}
+            disabled={isLoadingAiRuns}
+            className="rounded-lg border border-violet-700 bg-violet-950/40 px-4 py-2 text-sm font-medium text-violet-100 transition hover:bg-violet-900/60 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {isLoadingAiRuns ? "Cargando..." : "Refrescar historial"}
+          </button>
+        </div>
+
+        {aiRunsError ? (
+          <p className="mt-4 rounded-lg border border-red-900/70 bg-red-950/30 p-3 text-sm text-red-100">
+            {aiRunsError}
+          </p>
+        ) : null}
+
+        {aiRuns.length === 0 && !aiRunsError ? (
+          <p className="mt-4 text-sm text-slate-400">
+            Todavía no hay ejecuciones IA persistidas. Ejecutá un análisis para
+            crear el primer registro de auditoría.
+          </p>
+        ) : null}
+
+        {aiRuns.length > 0 ? (
+          <div className="mt-4 grid gap-3">
+            {aiRuns.slice(0, 5).map((run) => (
+              <article
+                key={run.id}
+                className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-medium text-slate-100">{run.task}</h3>
+                    <p className="mt-1 text-xs text-slate-400">
+                      {run.agentId} · {run.providerId} · {run.model}
+                    </p>
+                  </div>
+
+                  <span className="rounded-full bg-slate-800 px-3 py-1 text-xs text-slate-300">
+                    {run.status}
+                  </span>
+                </div>
+
+                <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-4">
+                  <div className="rounded-lg bg-slate-950/60 p-3">
+                    <dt className="text-slate-400">Assets</dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-50">
+                      {run.evidenceUsed.assets}
+                    </dd>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-950/60 p-3">
+                    <dt className="text-slate-400">Servicios</dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-50">
+                      {run.evidenceUsed.services}
+                    </dd>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-950/60 p-3">
+                    <dt className="text-slate-400">Findings</dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-50">
+                      {run.evidenceUsed.findings}
+                    </dd>
+                  </div>
+
+                  <div className="rounded-lg bg-slate-950/60 p-3">
+                    <dt className="text-slate-400">Recomendaciones</dt>
+                    <dd className="mt-1 text-lg font-semibold text-slate-50">
+                      {run.recommendations.length}
+                    </dd>
+                  </div>
+                </dl>
+
+                <p className="mt-3 text-xs text-slate-500">
+                  Run: {run.id} · Creado:{" "}
+                  {new Date(run.createdAt).toLocaleString()}
+                </p>
+              </article>
+            ))}
+          </div>
+        ) : null}
+      </section>
 
       <section className="grid gap-6 lg:grid-cols-2">
         <form
