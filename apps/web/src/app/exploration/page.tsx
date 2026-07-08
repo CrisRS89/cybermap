@@ -69,7 +69,7 @@ type FindingFormState = {
 
 type NmapTargetKind = "localhost" | "ip" | "network" | "domain";
 
-type NmapScanProfile = "basic" | "version_detection" | "fast" | "custom_ports";
+type NmapScanProfile = "basic" | "medium" | "complete" | "fast" | "custom_ports";
 
 type NmapCommandFormState = {
   targetKind: NmapTargetKind;
@@ -97,7 +97,7 @@ const initialFindingForm: FindingFormState = {
 const initialNmapCommandForm: NmapCommandFormState = {
   targetKind: "ip",
   target: "192.168.1.10",
-  scanProfile: "version_detection",
+  scanProfile: "medium",
   ports: "22,80,443,8000,8080",
   outputFile: "scan.xml",
 };
@@ -146,8 +146,12 @@ function buildNmapCommand(form: NmapCommandFormState): string {
 
   const baseArgs = ["nmap"];
 
-  if (form.scanProfile === "version_detection") {
-    baseArgs.push("-sV");
+  if (form.scanProfile === "medium") {
+    baseArgs.push("-sV", "-O");
+  }
+
+  if (form.scanProfile === "complete") {
+    baseArgs.push("-sV", "-O", "-A", "--version-all");
   }
 
   if (form.scanProfile === "fast") {
@@ -1041,7 +1045,8 @@ export default function ExplorationPage() {
                   className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
                 >
                   <option value="basic">básico</option>
-                  <option value="version_detection">detección de versiones</option>
+                  <option value="medium">medio: versiones + SO</option>
+                  <option value="complete">completo: profundo</option>
                   <option value="fast">rápido</option>
                   <option value="custom_ports">puertos concretos</option>
                 </select>

@@ -118,15 +118,18 @@ def test_import_nmap_xml_malformed_xml_returns_400(
     assert "detail" in response.json()
 
 
-def test_import_nmap_xml_with_dtd_returns_400(
+def test_import_nmap_xml_with_unsupported_dtd_returns_400(
     client_with_temp_db: TestClient,
 ) -> None:
     response = client_with_temp_db.post(
         "/exploration/imports/nmap",
-        json={"xml": "<!DOCTYPE nmaprun><nmaprun></nmaprun>"},
+        json={"xml": "<!DOCTYPE root><nmaprun></nmaprun>"},
     )
 
     assert response.status_code == 400
+    assert response.json()["detail"] == (
+        "Nmap XML with unsupported DTD is not allowed"
+    )
     assert "detail" in response.json()
 
 
@@ -370,3 +373,38 @@ def test_import_nmap_xml_response_includes_service_summary(
     assert second_response.json()["summary"]["assetsSkipped"] == 1
     assert second_response.json()["summary"]["servicesCreated"] == 0
     assert second_response.json()["summary"]["servicesSkipped"] == 2
+
+
+def test_import_nmap_xml_accepts_real_nmap_doctype(
+    client_with_temp_db: TestClient,
+) -> None:
+    xml = """<?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE nmaprun SYSTEM "https://nmap.org/schemas/nmap.dtd">
+    <nmaprun scanner="nmap" args="nmap -sV -oX scan.xml 127.0.0.1">
+      <host>
+        <status state="up" reason="localhost-response" />
+        <address addr="127.0.0.1" addrtype="ipv4" />
+        <ports>
+          <port protocol="tcp" portid="8000">
+            <state state="open" reason="syn-ack" />
+            <service name="http" product="uvicorn" />
+          </port>
+        </ports>
+      </host>
+    </nmaprun>
+    """
+
+    response = client_with_temp_db.post(
+        "/exploration/imports/nmap",
+        json={"xml": xml},
+    )
+
+    assert response.status_code == 200
+
+    summary = response.json()["summary"]
+
+    assert summary["assetsCreated"] == 1
+    assert summary["servicesCreated"] == 1
+    assert summary["hostsSeen"] == 1
+    assert summary["openPortsSeen"] == 1
+    assert summary["warnings"] == []

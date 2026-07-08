@@ -1,8 +1,14 @@
 from dataclasses import dataclass, field
+import re
 import xml.etree.ElementTree as ET
 
 
 MAX_NMAP_XML_BYTES = 1024 * 1024
+
+NMAP_DOCTYPE_PATTERN = re.compile(
+    r"<!DOCTYPE\s+nmaprun(?:\s+SYSTEM\s+[\"'][^\"']+[\"'])?\s*>",
+    re.IGNORECASE,
+)
 
 
 class NmapParseError(ValueError):
@@ -61,9 +67,10 @@ def parse_nmap_xml(xml_content: str) -> ParsedNmapResult:
     """
 
     _validate_xml_payload(xml_content)
+    normalized_xml = _normalize_nmap_xml(xml_content)
 
     try:
-        root = ET.fromstring(xml_content)
+        root = ET.fromstring(normalized_xml)
     except ET.ParseError as error:
         raise NmapParseError("Malformed Nmap XML") from error
 
@@ -96,11 +103,40 @@ def _validate_xml_payload(xml_content: str) -> None:
 
     lowered = xml_content.lower()
 
-    if "<!doctype" in lowered:
-        raise NmapParseError("Nmap XML with DTD is not allowed")
-
     if "<!entity" in lowered:
         raise NmapParseError("Nmap XML with entities is not allowed")
+
+    if "<!doctype" in lowered and not _contains_only_supported_nmap_doctype(
+        xml_content
+    ):
+        raise NmapParseError("Nmap XML with unsupported DTD is not allowed")
+
+
+def _contains_only_supported_nmap_doctype(xml_content: str) -> bool:
+    """Valida que los DOCTYPE presentes correspondan al formato Nmap tolerado.
+
+    Seguridad:
+    - permite solo DOCTYPE nmaprun simple o con SYSTEM;
+    - no permite subsets internos;
+    - las entidades siguen rechazadas por _validate_xml_payload().
+    """
+
+    doctypes = re.findall(r"<!DOCTYPE[^>]*>", xml_content, flags=re.IGNORECASE)
+
+    if not doctypes:
+        return True
+
+    return all(NMAP_DOCTYPE_PATTERN.fullmatch(item.strip()) for item in doctypes)
+
+
+def _normalize_nmap_xml(xml_content: str) -> str:
+    """Remueve DOCTYPE nmaprun permitido antes de parsear.
+
+    ElementTree no necesita el DTD para extraer hosts y puertos. Removerlo
+    evita resolución externa y permite importar XML reales de Nmap.
+    """
+
+    return NMAP_DOCTYPE_PATTERN.sub("", xml_content)
 
 
 def _parse_host(host_element: ET.Element) -> ParsedNmapHost | None:
