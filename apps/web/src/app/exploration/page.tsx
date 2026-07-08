@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 
 import { listAiRuns, runAiAgent } from "@/features/ai/ai-api";
 import type {
@@ -19,6 +19,12 @@ import {
   importNmapXml,
   type ImportNmapXmlSummary,
 } from "@/features/exploration/exploration-imports-api";
+import {
+  MAX_NMAP_XML_FILE_BYTES,
+  validateNmapXmlFile,
+} from "@/features/exploration/nmap-file";
+import { getNmapImportNotice } from "@/features/exploration/nmap-import-feedback";
+import { mapRecommendationSeverityToFinding } from "@/features/exploration/recommendation-to-finding";
 import type {
   AssetCriticality,
   AssetEnvironment,
@@ -224,6 +230,11 @@ export default function ExplorationPage() {
   const [nmapImportSummary, setNmapImportSummary] =
     useState<ImportNmapXmlSummary | null>(null);
   const [isImportingNmap, setIsImportingNmap] = useState(false);
+  const [selectedNmapFileName, setSelectedNmapFileName] = useState<string | null>(
+    null
+  );
+  const [nmapFileError, setNmapFileError] = useState<string | null>(null);
+  const [isReadingNmapFile, setIsReadingNmapFile] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AgentRunResponse | null>(null);
   const [aiAnalysisError, setAiAnalysisError] = useState<string | null>(null);
@@ -231,6 +242,8 @@ export default function ExplorationPage() {
   const [aiRuns, setAiRuns] = useState<AiRunHistoryItem[]>([]);
   const [aiRunsError, setAiRunsError] = useState<string | null>(null);
   const [isLoadingAiRuns, setIsLoadingAiRuns] = useState(false);
+  const [submittingRecommendationIndex, setSubmittingRecommendationIndex] =
+    useState<number | null>(null);
 
   async function loadExplorationData() {
     setState((current) => ({
@@ -443,6 +456,44 @@ export default function ExplorationPage() {
     }
   }
 
+  async function handleNmapXmlFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+
+    setNmapFileError(null);
+    setSelectedNmapFileName(null);
+    setNmapImportSummary(null);
+    setFormError(null);
+
+    if (!file) {
+      return;
+    }
+
+    const validationError = validateNmapXmlFile(file);
+
+    if (validationError) {
+      setNmapFileError(validationError);
+      return;
+    }
+
+    setIsReadingNmapFile(true);
+
+    try {
+      const content = await file.text();
+
+      if (!content.trim()) {
+        setNmapFileError("El archivo XML está vacío.");
+        return;
+      }
+
+      setNmapXml(content);
+      setSelectedNmapFileName(file.name);
+    } catch {
+      setNmapFileError("No se pudo leer el archivo XML.");
+    } finally {
+      setIsReadingNmapFile(false);
+    }
+  }
+
   async function handleImportNmapXml(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setFormError(null);
@@ -462,6 +513,8 @@ export default function ExplorationPage() {
 
       setNmapImportSummary(response.summary);
       setNmapXml("");
+      setSelectedNmapFileName(null);
+      setNmapFileError(null);
       await loadExplorationData();
     } catch (error) {
       setFormError(
@@ -471,6 +524,36 @@ export default function ExplorationPage() {
       );
     } finally {
       setIsImportingNmap(false);
+    }
+  }
+
+  async function handleCreateFindingFromRecommendation(index: number) {
+    const recommendation = aiAnalysis?.recommendations[index];
+
+    if (!recommendation || !recommendation.suggestedFinding) {
+      return;
+    }
+
+    setSubmittingRecommendationIndex(index);
+
+    try {
+      await createExplorationFinding({
+        title: recommendation.title,
+        severity: mapRecommendationSeverityToFinding(recommendation.severity),
+        assetId: null,
+        evidence: recommendation.rationale,
+      });
+
+      await loadExplorationData();
+      setFormError(null);
+    } catch (error) {
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo crear el finding desde la recomendación."
+      );
+    } finally {
+      setSubmittingRecommendationIndex(null);
     }
   }
 
@@ -507,6 +590,7 @@ export default function ExplorationPage() {
   }
 
   const generatedNmapCommand = buildNmapCommand(nmapCommandForm);
+  const nmapImportNotice = getNmapImportNotice(nmapImportSummary);
 
   const isEmpty =
     state.status === "ready" &&
@@ -602,7 +686,7 @@ export default function ExplorationPage() {
           </dl>
 
           <div className="mt-4 grid gap-3">
-            {aiAnalysis.recommendations.map((recommendation) => (
+            {aiAnalysis.recommendations.map((recommendation, index) => (
               <article
                 key={`${recommendation.title}-${recommendation.severity}`}
                 className="rounded-xl border border-slate-800 bg-slate-950/60 p-4"
@@ -621,9 +705,21 @@ export default function ExplorationPage() {
                 </p>
 
                 {recommendation.suggestedFinding ? (
-                  <p className="mt-2 text-xs uppercase tracking-wide text-violet-300">
-                    Sugerido como finding
-                  </p>
+                  <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                    <p className="text-xs uppercase tracking-wide text-violet-300">
+                      Sugerido como finding
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => void handleCreateFindingFromRecommendation(index)}
+                      disabled={submittingRecommendationIndex === index}
+                      className="rounded-lg bg-violet-600 px-3 py-1 text-xs font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
+                    >
+                      {submittingRecommendationIndex === index
+                        ? "Creando..."
+                        : "Crear finding"}
+                    </button>
+                  </div>
                 ) : null}
               </article>
             ))}
@@ -936,8 +1032,9 @@ export default function ExplorationPage() {
             Importar XML de Nmap
           </h2>
           <p className="max-w-3xl text-sm leading-6 text-slate-300">
-            Pegá una salida XML generada por Nmap. CyberMap no ejecuta Nmap,
-            no descarga URLs y no lee rutas locales; solo procesa el XML pegado.
+            Podés pegar una salida XML generada por Nmap o cargar un archivo
+            local .xml desde tu equipo. CyberMap no ejecuta Nmap, no descarga
+            URLs y no lee rutas locales; solo procesa el XML cargado o pegado.
           </p>
         </div>
 
@@ -1125,6 +1222,35 @@ export default function ExplorationPage() {
         </section>
 
         <div className="mt-4 grid gap-4">
+          <div className="grid gap-2 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+            <label className="text-sm font-medium text-slate-300" htmlFor="nmap-xml-file">
+              Seleccionar archivo XML
+            </label>
+            <input
+              id="nmap-xml-file"
+              type="file"
+              accept=".xml,text/xml,application/xml"
+              onChange={(event) => void handleNmapXmlFileChange(event)}
+              className="block w-full rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 file:mr-3 file:rounded-md file:border-0 file:bg-cyan-600 file:px-3 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-cyan-500"
+            />
+            <p className="text-xs leading-6 text-slate-400">
+              Tamaño máximo: {MAX_NMAP_XML_FILE_BYTES / (1024 * 1024)} MB. También podés pegar manualmente el contenido XML en el textarea.
+            </p>
+            {isReadingNmapFile ? (
+              <p className="text-sm text-cyan-300">Leyendo archivo XML…</p>
+            ) : null}
+            {selectedNmapFileName ? (
+              <p className="text-sm text-emerald-300">
+                Archivo cargado: {selectedNmapFileName}
+              </p>
+            ) : null}
+            {nmapFileError ? (
+              <p className="rounded-lg border border-red-900/70 bg-red-950/30 p-3 text-sm text-red-100">
+                {nmapFileError}
+              </p>
+            ) : null}
+          </div>
+
           <label className="grid gap-2 text-sm text-slate-300">
             XML de Nmap
             <textarea
@@ -1151,6 +1277,12 @@ export default function ExplorationPage() {
               <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
                 Resumen de importación
               </h3>
+
+              {nmapImportNotice ? (
+                <p className="mt-3 rounded-lg border border-amber-900/70 bg-amber-950/30 p-3 text-sm leading-6 text-amber-100">
+                  {nmapImportNotice}
+                </p>
+              ) : null}
 
               <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2 lg:grid-cols-6">
                 <div className="rounded-lg bg-slate-950/60 p-3">
