@@ -4,6 +4,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from app.main import app
+from app.repositories.ai_runs_sqlite_repository import AiRunsSQLiteRepository
 from app.repositories.exploration_sqlite_repository import ExplorationSQLiteRepository
 from app.routes import ai
 from app.schemas.exploration import (
@@ -24,13 +25,21 @@ def client_with_temp_db(
 
     db_path = tmp_path / "cybermap-ai-test.db"
 
-    def override_service() -> ExplorationSQLiteRepository:
+    def override_exploration_service() -> ExplorationSQLiteRepository:
         return ExplorationSQLiteRepository(db_path)
+
+    def override_ai_runs_repository() -> AiRunsSQLiteRepository:
+        return AiRunsSQLiteRepository(db_path)
 
     monkeypatch.setattr(
         ai,
         "get_exploration_service",
-        override_service,
+        override_exploration_service,
+    )
+    monkeypatch.setattr(
+        ai,
+        "get_ai_runs_repository",
+        override_ai_runs_repository,
     )
 
     return TestClient(app)
@@ -75,6 +84,7 @@ def test_run_ai_agent_with_mock_provider_uses_exploration_context(
 
     body = response.json()
 
+    assert body["runId"].startswith("ai_run_")
     assert body["agentId"] == "exploration_analyst"
     assert body["providerId"] == "mock"
     assert body["model"] == "mock-security-model"
@@ -89,6 +99,57 @@ def test_run_ai_agent_with_mock_provider_uses_exploration_context(
         "Revisar exposición de servicios HTTP/HTTPS"
     )
     assert body["recommendations"][0]["suggestedFinding"] is True
+
+
+def test_run_ai_agent_persists_successful_run(
+    client_with_temp_db: TestClient,
+) -> None:
+    repository = ai.get_exploration_service()
+    ai_runs_repository = ai.get_ai_runs_repository()
+
+    asset = repository.create_asset(
+        AssetCreate(
+            name="web-01.local",
+            kind=AssetKind.IP,
+            value="192.168.1.10",
+        )
+    )
+
+    repository.create_service(
+        ExplorationServiceCreate(
+            assetId=asset.id,
+            protocol=ServiceProtocol.TCP,
+            port=443,
+            name="https",
+            source=ServiceSource.NMAP,
+        )
+    )
+
+    response = client_with_temp_db.post(
+        "/ai/runs",
+        json={
+            "agentId": "exploration_analyst",
+            "providerId": "mock",
+            "model": "mock-security-model",
+            "task": "Analizar superficie detectada",
+        },
+    )
+
+    assert response.status_code == 200
+
+    body = response.json()
+    persisted = ai_runs_repository.find_ai_run_by_id(body["runId"])
+
+    assert persisted is not None
+    assert persisted.id == body["runId"]
+    assert persisted.agentId == "exploration_analyst"
+    assert persisted.providerId == "mock"
+    assert persisted.model == "mock-security-model"
+    assert persisted.task == "Analizar superficie detectada"
+    assert persisted.evidenceUsed.assets == 1
+    assert persisted.evidenceUsed.services == 1
+    assert persisted.evidenceUsed.findings == 0
+    assert persisted.recommendations[0]["suggestedFinding"] is True
 
 
 def test_run_ai_agent_rejects_unknown_agent(
@@ -247,3 +308,22 @@ def test_run_ai_agent_filters_context_by_asset_ids(
     assert body["recommendations"][0]["title"] == (
         "Revisar exposición de servicios HTTP/HTTPS"
     )
+
+
+def test_run_ai_agent_does_not_persist_failed_validation(
+    client_with_temp_db: TestClient,
+) -> None:
+    ai_runs_repository = ai.get_ai_runs_repository()
+
+    response = client_with_temp_db.post(
+        "/ai/runs",
+        json={
+            "agentId": "missing_agent",
+            "providerId": "mock",
+            "model": "mock-security-model",
+            "task": "Analizar superficie detectada",
+        },
+    )
+
+    assert response.status_code == 400
+    assert ai_runs_repository.list_ai_runs() == []

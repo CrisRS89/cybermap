@@ -99,6 +99,7 @@ class AgentRunResponse(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    runId: StrictStr
     agentId: StrictStr
     providerId: StrictStr
     model: StrictStr

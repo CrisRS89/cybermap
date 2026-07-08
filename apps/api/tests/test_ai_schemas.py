@@ -81,6 +81,7 @@ def test_agent_run_scope_rejects_extra_fields():
 
 def test_agent_run_response_serializes_http_contract():
     response = AgentRunResponse(
+        runId="ai_run_1",
         agentId="exploration_analyst",
         providerId="mock",
         model="mock-security-model",
@@ -102,6 +103,7 @@ def test_agent_run_response_serializes_http_contract():
     )
 
     assert response.model_dump(mode="json") == {
+        "runId": "ai_run_1",
         "agentId": "exploration_analyst",
         "providerId": "mock",
         "model": "mock-security-model",
