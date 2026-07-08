@@ -13,7 +13,7 @@ from app.schemas.ai import (
     AgentRunResponse,
     AgentRunStatus,
 )
-from app.schemas.ai_run import AiRunCreate
+from app.schemas.ai_run import AiRunCreate, AiRunListResponse
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -27,6 +27,20 @@ def get_ai_runs_repository() -> AiRunsSQLiteRepository:
 
     api_root = Path(__file__).resolve().parents[2]
     return AiRunsSQLiteRepository(api_root / "data" / "cybermap.db")
+
+
+@router.get("/runs", response_model=AiRunListResponse)
+def list_ai_runs() -> AiRunListResponse:
+    """Lista ejecuciones IA persistidas.
+
+    Propósito:
+    - exponer historial básico de análisis;
+    - permitir auditoría y trazabilidad;
+    - preparar UI futura de historial IA.
+    """
+
+    repository = get_ai_runs_repository()
+    return AiRunListResponse(items=repository.list_ai_runs())
 
 
 @router.post("/runs", response_model=AgentRunResponse)

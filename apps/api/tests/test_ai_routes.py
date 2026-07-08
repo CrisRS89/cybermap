@@ -327,3 +327,84 @@ def test_run_ai_agent_does_not_persist_failed_validation(
 
     assert response.status_code == 400
     assert ai_runs_repository.list_ai_runs() == []
+
+
+def test_list_ai_runs_returns_empty_history(
+    client_with_temp_db: TestClient,
+) -> None:
+    response = client_with_temp_db.get("/ai/runs")
+
+    assert response.status_code == 200
+    assert response.json() == {"items": []}
+
+
+def test_list_ai_runs_returns_persisted_runs(
+    client_with_temp_db: TestClient,
+) -> None:
+    create_response = client_with_temp_db.post(
+        "/ai/runs",
+        json={
+            "agentId": "exploration_analyst",
+            "providerId": "mock",
+            "model": "mock-security-model",
+            "task": "Analizar superficie detectada",
+        },
+    )
+
+    assert create_response.status_code == 200
+
+    list_response = client_with_temp_db.get("/ai/runs")
+
+    assert list_response.status_code == 200
+
+    body = list_response.json()
+
+    assert len(body["items"]) == 1
+    assert body["items"][0]["id"] == create_response.json()["runId"]
+    assert body["items"][0]["agentId"] == "exploration_analyst"
+    assert body["items"][0]["providerId"] == "mock"
+    assert body["items"][0]["model"] == "mock-security-model"
+    assert body["items"][0]["task"] == "Analizar superficie detectada"
+    assert body["items"][0]["status"] == "completed"
+    assert body["items"][0]["evidenceUsed"] == {
+        "assets": 0,
+        "services": 0,
+        "findings": 0,
+    }
+
+
+def test_list_ai_runs_returns_newest_first(
+    client_with_temp_db: TestClient,
+) -> None:
+    first_response = client_with_temp_db.post(
+        "/ai/runs",
+        json={
+            "agentId": "exploration_analyst",
+            "providerId": "mock",
+            "model": "mock-security-model",
+            "task": "Primera ejecución",
+        },
+    )
+    second_response = client_with_temp_db.post(
+        "/ai/runs",
+        json={
+            "agentId": "exploration_analyst",
+            "providerId": "mock",
+            "model": "mock-security-model",
+            "task": "Segunda ejecución",
+        },
+    )
+
+    assert first_response.status_code == 200
+    assert second_response.status_code == 200
+
+    list_response = client_with_temp_db.get("/ai/runs")
+
+    assert list_response.status_code == 200
+
+    items = list_response.json()["items"]
+
+    assert [item["id"] for item in items] == [
+        second_response.json()["runId"],
+        first_response.json()["runId"],
+    ]

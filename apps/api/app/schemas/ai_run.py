@@ -43,3 +43,11 @@ class AiRunRead(BaseModel):
     evidenceUsed: AgentRunEvidenceUsed
     createdAt: datetime
     updatedAt: datetime
+
+
+class AiRunListResponse(BaseModel):
+    """Respuesta HTTP para listar ejecuciones IA persistidas."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    items: list[AiRunRead]
