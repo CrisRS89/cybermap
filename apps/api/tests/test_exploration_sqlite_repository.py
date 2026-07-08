@@ -3,6 +3,11 @@ import sqlite3
 import pytest
 
 from app.repositories.exploration_sqlite_repository import ExplorationSQLiteRepository
+from app.storage.sqlite_migrations import (
+    AI_RUNS_VERSION,
+    EXPLORATION_INITIAL_VERSION,
+    EXPLORATION_SERVICES_VERSION,
+)
 from app.schemas.exploration import (
     AssetCreate,
     AssetCriticality,
@@ -178,8 +183,9 @@ def test_sqlite_repository_does_not_duplicate_migration_records(tmp_path):
         ).fetchall()
 
     assert rows == [
-        ("001_exploration_initial", 1),
-        ("002_exploration_services", 1),
+        (EXPLORATION_INITIAL_VERSION, 1),
+        (EXPLORATION_SERVICES_VERSION, 1),
+        (AI_RUNS_VERSION, 1),
     ]
 
 

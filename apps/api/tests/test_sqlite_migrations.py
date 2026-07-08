@@ -1,6 +1,7 @@
 import sqlite3
 
 from app.storage.sqlite_migrations import (
+    AI_RUNS_VERSION,
     EXPLORATION_INITIAL_VERSION,
     EXPLORATION_SERVICES_VERSION,
     apply_sqlite_migrations,
@@ -24,6 +25,7 @@ def test_sqlite_migrations_create_schema_migrations_table(tmp_path):
     assert rows == [
         (EXPLORATION_INITIAL_VERSION,),
         (EXPLORATION_SERVICES_VERSION,),
+        (AI_RUNS_VERSION,),
     ]
 
 
@@ -48,6 +50,7 @@ def test_sqlite_migrations_create_exploration_tables(tmp_path):
     assert "exploration_assets" in tables
     assert "exploration_findings" in tables
     assert "exploration_services" in tables
+    assert "ai_runs" in tables
 
 
 def test_sqlite_migrations_are_idempotent(tmp_path):
@@ -93,6 +96,10 @@ def test_sqlite_migrations_create_expected_indexes(tmp_path):
     assert "idx_exploration_services_asset_id" in indexes
     assert "idx_exploration_services_port" in indexes
     assert "idx_exploration_services_asset_protocol_port" in indexes
+    assert "idx_ai_runs_agent_id" in indexes
+    assert "idx_ai_runs_provider_id" in indexes
+    assert "idx_ai_runs_status" in indexes
+    assert "idx_ai_runs_created_at" in indexes
 
 
 def test_sqlite_migrations_create_services_foreign_key(tmp_path):
@@ -251,4 +258,35 @@ def test_sqlite_migrations_ignore_duplicate_version_registration(tmp_path):
     assert rows == [
         (EXPLORATION_INITIAL_VERSION, 1),
         (EXPLORATION_SERVICES_VERSION, 1),
+        (AI_RUNS_VERSION, 1),
     ]
+
+
+def test_sqlite_migrations_create_ai_runs_expected_columns(tmp_path):
+    database_path = tmp_path / "cybermap.db"
+
+    with sqlite3.connect(database_path) as connection:
+        apply_sqlite_migrations(connection)
+
+        columns = {
+            row[1]: row[2]
+            for row in connection.execute(
+                """
+                PRAGMA table_info(ai_runs)
+                """
+            ).fetchall()
+        }
+
+    assert columns == {
+        "id": "TEXT",
+        "agent_id": "TEXT",
+        "provider_id": "TEXT",
+        "model": "TEXT",
+        "task": "TEXT",
+        "status": "TEXT",
+        "summary": "TEXT",
+        "recommendations_json": "TEXT",
+        "evidence_used_json": "TEXT",
+        "created_at": "TEXT",
+        "updated_at": "TEXT",
+    }

@@ -4,6 +4,7 @@ import sqlite3
 
 EXPLORATION_INITIAL_VERSION = "001_exploration_initial"
 EXPLORATION_SERVICES_VERSION = "002_exploration_services"
+AI_RUNS_VERSION = "003_ai_runs"
 
 
 EXPLORATION_INITIAL_SQL = """
@@ -76,12 +77,39 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_exploration_services_asset_protocol_port
     ON exploration_services(asset_id, protocol, port);
 """
 
+AI_RUNS_SQL = """
+CREATE TABLE IF NOT EXISTS ai_runs (
+    id TEXT PRIMARY KEY,
+    agent_id TEXT NOT NULL,
+    provider_id TEXT NOT NULL,
+    model TEXT NOT NULL,
+    task TEXT NOT NULL,
+    status TEXT NOT NULL,
+    summary TEXT NOT NULL,
+    recommendations_json TEXT NOT NULL,
+    evidence_used_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+);
 
+CREATE INDEX IF NOT EXISTS idx_ai_runs_agent_id
+    ON ai_runs(agent_id);
+
+CREATE INDEX IF NOT EXISTS idx_ai_runs_provider_id
+    ON ai_runs(provider_id);
+
+CREATE INDEX IF NOT EXISTS idx_ai_runs_status
+    ON ai_runs(status);
+
+CREATE INDEX IF NOT EXISTS idx_ai_runs_created_at
+    ON ai_runs(created_at);
+"""
 
 
 MIGRATIONS: tuple[tuple[str, str], ...] = (
     (EXPLORATION_INITIAL_VERSION, EXPLORATION_INITIAL_SQL),
     (EXPLORATION_SERVICES_VERSION, EXPLORATION_SERVICES_SQL),
+    (AI_RUNS_VERSION, AI_RUNS_SQL),
 )
 
 
