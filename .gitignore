@@ -44,3 +44,7 @@ secrets/
 
 # Test caches
 .pytest_cache/
+
+# Local Nmap scan outputs
+scan-*.xml
+*.nmap.xml
