@@ -82,6 +82,39 @@ const initialFindingForm: FindingFormState = {
   evidence: "",
 };
 
+const nmapCommandPresets = [
+  {
+    title: "Host local",
+    command: "nmap -sV -oX scan-local.xml 127.0.0.1",
+    description: "Detecta servicios y versiones expuestas en el equipo local.",
+  },
+  {
+    title: "IP específica autorizada",
+    command: "nmap -sV -oX scan-ip.xml 192.168.1.10",
+    description: "Analiza una IP puntual y genera XML importable.",
+  },
+  {
+    title: "Red local autorizada",
+    command: "nmap -sV -oX scan-red.xml 192.168.1.0/24",
+    description: "Descubre hosts y servicios dentro de una red propia.",
+  },
+  {
+    title: "Escaneo rápido",
+    command: "nmap -F -sV -oX scan-rapido.xml 192.168.1.10",
+    description: "Revisa puertos comunes con menor tiempo de ejecución.",
+  },
+  {
+    title: "Puertos concretos",
+    command: "nmap -sV -p 22,80,443,8000,8080 -oX scan-puertos.xml 192.168.1.10",
+    description: "Limita el análisis a puertos definidos por el usuario.",
+  },
+  {
+    title: "Dominio autorizado",
+    command: "nmap -sV -oX scan-dominio.xml ejemplo.com",
+    description: "Analiza servicios asociados a un dominio bajo autorización.",
+  },
+];
+
 function getAssetLabel(
   assetId: string,
   assets: ExplorationAsset[]
@@ -803,6 +836,40 @@ export default function ExplorationPage() {
             no descarga URLs y no lee rutas locales; solo procesa el XML pegado.
           </p>
         </div>
+
+        <section className="mt-5 rounded-xl border border-cyan-900/60 bg-cyan-950/20 p-4">
+          <div className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-300">
+              Comandos sugeridos para generar XML
+            </h3>
+            <p className="text-sm leading-6 text-slate-300">
+              Ejecutá estos comandos en tu terminal, abrí el archivo XML
+              generado y pegá su contenido en el formulario de importación.
+            </p>
+            <p className="rounded-lg border border-amber-900/70 bg-amber-950/30 p-3 text-sm leading-6 text-amber-100">
+              Usá estos comandos solo sobre sistemas propios o sobre objetivos
+              donde tengas autorización explícita. En esta fase CyberMap no
+              ejecuta escaneos; solo importa XML generado externamente.
+            </p>
+          </div>
+
+          <div className="mt-4 grid gap-3 lg:grid-cols-2">
+            {nmapCommandPresets.map((preset) => (
+              <article
+                key={preset.title}
+                className="rounded-lg border border-slate-800 bg-slate-950/60 p-4"
+              >
+                <h4 className="font-medium text-slate-100">{preset.title}</h4>
+                <p className="mt-1 text-sm leading-6 text-slate-400">
+                  {preset.description}
+                </p>
+                <pre className="mt-3 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-cyan-100">
+                  <code>{preset.command}</code>
+                </pre>
+              </article>
+            ))}
+          </div>
+        </section>
 
         <div className="mt-4 grid gap-4">
           <label className="grid gap-2 text-sm text-slate-300">
