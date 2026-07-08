@@ -67,6 +67,18 @@ type FindingFormState = {
   evidence: string;
 };
 
+type NmapTargetKind = "localhost" | "ip" | "network" | "domain";
+
+type NmapScanProfile = "basic" | "version_detection" | "fast" | "custom_ports";
+
+type NmapCommandFormState = {
+  targetKind: NmapTargetKind;
+  target: string;
+  scanProfile: NmapScanProfile;
+  ports: string;
+  outputFile: string;
+};
+
 const initialAssetForm: AssetFormState = {
   name: "",
   kind: "host",
@@ -80,6 +92,14 @@ const initialFindingForm: FindingFormState = {
   severity: "medium",
   assetId: null,
   evidence: "",
+};
+
+const initialNmapCommandForm: NmapCommandFormState = {
+  targetKind: "ip",
+  target: "192.168.1.10",
+  scanProfile: "version_detection",
+  ports: "22,80,443,8000,8080",
+  outputFile: "scan.xml",
 };
 
 const nmapCommandPresets = [
@@ -115,6 +135,54 @@ const nmapCommandPresets = [
   },
 ];
 
+function buildNmapCommand(form: NmapCommandFormState): string {
+  const target = form.target.trim();
+  const outputFile = form.outputFile.trim();
+  const ports = form.ports.trim();
+
+  if (!target || !outputFile) {
+    return "";
+  }
+
+  const baseArgs = ["nmap"];
+
+  if (form.scanProfile === "version_detection") {
+    baseArgs.push("-sV");
+  }
+
+  if (form.scanProfile === "fast") {
+    baseArgs.push("-F", "-sV");
+  }
+
+  if (form.scanProfile === "custom_ports") {
+    baseArgs.push("-sV");
+
+    if (ports) {
+      baseArgs.push("-p", ports);
+    }
+  }
+
+  baseArgs.push("-oX", outputFile, target);
+
+  return baseArgs.join(" ");
+}
+
+function getNmapTargetPlaceholder(targetKind: NmapTargetKind): string {
+  if (targetKind === "localhost") {
+    return "127.0.0.1";
+  }
+
+  if (targetKind === "network") {
+    return "192.168.1.0/24";
+  }
+
+  if (targetKind === "domain") {
+    return "ejemplo.com";
+  }
+
+  return "192.168.1.10";
+}
+
 function getAssetLabel(
   assetId: string,
   assets: ExplorationAsset[]
@@ -143,6 +211,8 @@ export default function ExplorationPage() {
   const [isSubmittingAsset, setIsSubmittingAsset] = useState(false);
   const [isSubmittingFinding, setIsSubmittingFinding] = useState(false);
   const [nmapXml, setNmapXml] = useState("");
+  const [nmapCommandForm, setNmapCommandForm] =
+    useState<NmapCommandFormState>(initialNmapCommandForm);
   const [nmapImportSummary, setNmapImportSummary] =
     useState<ImportNmapXmlSummary | null>(null);
   const [isImportingNmap, setIsImportingNmap] = useState(false);
@@ -403,6 +473,8 @@ export default function ExplorationPage() {
       setIsRunningAiAnalysis(false);
     }
   }
+
+  const generatedNmapCommand = buildNmapCommand(nmapCommandForm);
 
   const isEmpty =
     state.status === "ready" &&
@@ -868,6 +940,127 @@ export default function ExplorationPage() {
                 </pre>
               </article>
             ))}
+          </div>
+
+          <div className="mt-5 rounded-xl border border-slate-800 bg-slate-950/60 p-4">
+            <div className="flex flex-col gap-2">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-cyan-300">
+                Generador asistido de comando
+              </h3>
+              <p className="text-sm leading-6 text-slate-300">
+                Completá los campos y CyberMap generará un comando Nmap para
+                ejecutar manualmente en tu terminal. No se ejecuta ningún
+                escaneo desde la aplicación.
+              </p>
+            </div>
+
+            <div className="mt-4 grid gap-4 lg:grid-cols-2">
+              <label className="grid gap-2 text-sm text-slate-300">
+                Tipo de objetivo
+                <select
+                  value={nmapCommandForm.targetKind}
+                  onChange={(event) => {
+                    const targetKind = event.target.value as NmapTargetKind;
+
+                    setNmapCommandForm((current) => ({
+                      ...current,
+                      targetKind,
+                      target: getNmapTargetPlaceholder(targetKind),
+                    }));
+                  }}
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                >
+                  <option value="localhost">localhost</option>
+                  <option value="ip">ip</option>
+                  <option value="network">red</option>
+                  <option value="domain">dominio</option>
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm text-slate-300">
+                Objetivo
+                <input
+                  value={nmapCommandForm.target}
+                  onChange={(event) =>
+                    setNmapCommandForm((current) => ({
+                      ...current,
+                      target: event.target.value,
+                    }))
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                  placeholder={getNmapTargetPlaceholder(
+                    nmapCommandForm.targetKind
+                  )}
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm text-slate-300">
+                Perfil
+                <select
+                  value={nmapCommandForm.scanProfile}
+                  onChange={(event) =>
+                    setNmapCommandForm((current) => ({
+                      ...current,
+                      scanProfile: event.target.value as NmapScanProfile,
+                    }))
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                >
+                  <option value="basic">básico</option>
+                  <option value="version_detection">detección de versiones</option>
+                  <option value="fast">rápido</option>
+                  <option value="custom_ports">puertos concretos</option>
+                </select>
+              </label>
+
+              <label className="grid gap-2 text-sm text-slate-300">
+                Archivo XML
+                <input
+                  value={nmapCommandForm.outputFile}
+                  onChange={(event) =>
+                    setNmapCommandForm((current) => ({
+                      ...current,
+                      outputFile: event.target.value,
+                    }))
+                  }
+                  className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                  placeholder="scan.xml"
+                />
+              </label>
+
+              {nmapCommandForm.scanProfile === "custom_ports" ? (
+                <label className="grid gap-2 text-sm text-slate-300 lg:col-span-2">
+                  Puertos
+                  <input
+                    value={nmapCommandForm.ports}
+                    onChange={(event) =>
+                      setNmapCommandForm((current) => ({
+                        ...current,
+                        ports: event.target.value,
+                      }))
+                    }
+                    className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500"
+                    placeholder="22,80,443,8000,8080"
+                  />
+                </label>
+              ) : null}
+            </div>
+
+            <div className="mt-4">
+              <p className="text-sm font-medium text-slate-300">
+                Comando generado
+              </p>
+
+              {generatedNmapCommand ? (
+                <pre className="mt-2 overflow-x-auto rounded-lg border border-slate-800 bg-slate-900 p-3 text-xs text-cyan-100">
+                  <code>{generatedNmapCommand}</code>
+                </pre>
+              ) : (
+                <p className="mt-2 rounded-lg border border-amber-900/70 bg-amber-950/30 p-3 text-sm text-amber-100">
+                  Completá objetivo y archivo XML para generar el comando.
+                </p>
+              )}
+            </div>
           </div>
         </section>
 
