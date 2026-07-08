@@ -1,0 +1,81 @@
+name: Validate local
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+
+      - name: Cache node modules
+        uses: actions/cache@v4
+        with:
+          path: |
+            apps/web/node_modules
+            ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('apps/web/package-lock.json') || hashFiles('apps/web/package.json') }}
+
+      - name: Make validation script executable
+        run: chmod +x ./scripts/validate-local.sh
+
+      - name: Run validation (script)
+        run: ./scripts/validate-local.sh
+
+      - name: Install backend requirements for reports
+        run: pip install -r apps/api/requirements.txt
+
+      - name: Install pytest-cov
+        run: pip install pytest-cov
+
+      - name: Run pytest with coverage
+        run: |
+          mkdir -p apps/api/reports
+          python -m pytest apps/api --cov=apps/api --cov-report=xml:apps/api/reports/coverage.xml --cov-report=html:apps/api/reports/htmlcov --junitxml=apps/api/reports/pytest.xml
+
+      - name: Run frontend tests (JSON reporter)
+        run: |
+          mkdir -p apps/web/reports
+          npm --prefix apps/web run test -- --reporter json > apps/web/reports/vitest.json || true
+
+      - name: Upload backend coverage artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage
+          path: apps/api/reports
+
+      - name: Upload frontend test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: apps/web/reports
+
+      - name: Upload validation log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: validation-log
+          path: |
+            ./validation.log
