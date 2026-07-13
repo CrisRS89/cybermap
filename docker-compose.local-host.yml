@@ -1,0 +1,18 @@
+services:
+  backend:
+    network_mode: host
+    ports: !reset []
+    environment:
+      - CYBERMAP_API_APP_NAME=CyberMap API
+      - CYBERMAP_API_ENVIRONMENT=local
+      - CYBERMAP_API_CORS_ORIGINS=http://localhost:3000
+      - CYBERMAP_API_DATA_DIR=/app/data
+
+  frontend:
+    network_mode: host
+    ports: !reset []
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+    depends_on:
+      backend:
+        condition: service_healthy

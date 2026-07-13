@@ -58,6 +58,24 @@ docker compose down
 docker compose logs -f
 ```
 
+#### Fallback Linux/Kali con firewalld
+
+Si Docker levanta pero falla al publicar puertos con errores de iptables como
+`No chain/target/match by that name` o `ZONE_CONFLICT`, podés usar el override
+local con `network_mode: host`:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.local-host.yml up -d
+```
+
+Abrir:
+
+- Frontend: http://localhost:3000
+- Backend: http://localhost:8000/health
+
+Este modo evita DNAT/port publishing y es útil para entornos Linux donde
+firewalld o NetworkManager interfiere con las cadenas Docker de iptables.
+
 ---
 
 ### Opción 2: Instalación Nativa (Control total)
