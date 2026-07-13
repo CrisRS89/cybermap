@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   backend:
     build:
@@ -25,13 +23,15 @@ services:
 
   frontend:
     build:
-      context: apps/web
-      dockerfile: ../Dockerfile.web
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
     container_name: cybermap-web
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000
+      - NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
     depends_on:
       backend:
         condition: service_healthy

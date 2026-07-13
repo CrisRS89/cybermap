@@ -49,8 +49,8 @@ docker compose up
 |---------|--------|---|
 | Settings UI & API | ✅ Completo | [API Contract](docs/api/settings-contract.md) |
 | Exploration: Nmap Import | ✅ Completo | [Guía](docs/api/exploration-contract.md) |
-| Exploration: Visualización activos | ✅ Completo | [UI Guide](docs/features.md) |
-| AI Analysis (mock) | ✅ Completo | [Orchestrator](docs/architecture/ai-gateway.md) |
+| Exploration: Visualización activos | ✅ Completo | [UI Guide](docs/FEATURES.md) |
+| AI Analysis (mock) | ✅ Completo | [Features](docs/FEATURES.md) |
 | Sync frontend-backend | ✅ Completo | [E2E Tests](apps/api/tests/) |
 | Persistencia JSON/SQLite | ✅ Funcional | [Storage](docs/architecture/local-storage.md) |
 | Validación automatizada | ✅ Funcional | [CI/CD](.github/workflows/validate.yml) |
@@ -140,7 +140,7 @@ npm --prefix apps/web run dev
 | Tema | Archivo |
 |------|---------|
 | **Instalación** | [docs/setup/fresh-clone.md](docs/setup/fresh-clone.md) |
-| **Arquitectura** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Arquitectura** | [docs/architecture.md](docs/architecture.md) |
 | **Features** | [docs/FEATURES.md](docs/FEATURES.md) |
 | **Desarrollo** | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
 | **Roadmap** | [docs/roadmap.md](docs/roadmap.md) |

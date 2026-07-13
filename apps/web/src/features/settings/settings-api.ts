@@ -6,7 +6,10 @@ import type {
 import type { CyberMapSettings } from "./settings-types";
 
 export function getSettingsApiBaseUrl(): string | undefined {
-  const configuredUrl = process.env.NEXT_PUBLIC_CYBERMAP_API_URL?.trim();
+  const configuredUrl = (
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_CYBERMAP_API_URL
+  )?.trim();
 
   if (!configuredUrl) {
     return undefined;

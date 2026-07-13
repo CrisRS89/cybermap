@@ -224,7 +224,7 @@ npm --prefix apps/web run test
 
 Una vez funcionando CyberMap:
 
-1. Lee [docs/ARCHITECTURE.md](../ARCHITECTURE.md) para entender la estructura
+1. Lee [docs/architecture.md](../architecture.md) para entender la estructura
 2. Lee [docs/FEATURES.md](../FEATURES.md) para ver capacidades actuales
 3. Lee [docs/roadmap.md](../roadmap.md) para ver el futuro del proyecto
 4. Lee [docs/DEVELOPMENT.md](../DEVELOPMENT.md) para desarrollar features

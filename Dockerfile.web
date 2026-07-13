@@ -3,23 +3,31 @@ FROM node:20-alpine as builder
 
 WORKDIR /app
 
+ARG NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
+ENV NEXT_PUBLIC_API_BASE_URL=$NEXT_PUBLIC_API_BASE_URL
+
 # Copy package files
-COPY package*.json ./
+COPY apps/web/package*.json ./
 
 # Install dependencies
-RUN npm ci --only=production && \
+RUN npm ci && \
     npm cache clean --force
 
 # Copy source code
-COPY . .
+COPY apps/web .
 
 # Build Next.js application
 RUN npm run build
+
+RUN npm prune --omit=dev
 
 # Runtime stage
 FROM node:20-alpine
 
 WORKDIR /app
+
+ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_BASE_URL=http://localhost:8000
 
 # Copy built assets from builder
 COPY --from=builder /app/.next ./.next

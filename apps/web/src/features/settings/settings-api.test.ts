@@ -8,24 +8,32 @@ import { defaultSettings } from "./settings-options";
 
 describe("settings API client", () => {
   afterEach(() => {
+    delete process.env.NEXT_PUBLIC_API_BASE_URL;
     delete process.env.NEXT_PUBLIC_CYBERMAP_API_URL;
     vi.unstubAllGlobals();
   });
 
   it("returns undefined when API URL is not configured", () => {
+    delete process.env.NEXT_PUBLIC_API_BASE_URL;
     delete process.env.NEXT_PUBLIC_CYBERMAP_API_URL;
 
     expect(getSettingsApiBaseUrl()).toBeUndefined();
   });
 
   it("normalizes trailing slash from API URL", () => {
-    process.env.NEXT_PUBLIC_CYBERMAP_API_URL = "http://localhost:8000/";
+    process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:8000/";
 
     expect(getSettingsApiBaseUrl()).toBe("http://localhost:8000");
   });
 
+  it("supports the legacy settings API URL environment variable", () => {
+    process.env.NEXT_PUBLIC_CYBERMAP_API_URL = "http://localhost:8001/";
+
+    expect(getSettingsApiBaseUrl()).toBe("http://localhost:8001");
+  });
+
   it("sends settings to the configured API", async () => {
-    process.env.NEXT_PUBLIC_CYBERMAP_API_URL = "http://localhost:8000";
+    process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:8000";
 
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
@@ -67,7 +75,7 @@ describe("settings API client", () => {
   });
 
   it("returns not synced when API response fails", async () => {
-    process.env.NEXT_PUBLIC_CYBERMAP_API_URL = "http://localhost:8000";
+    process.env.NEXT_PUBLIC_API_BASE_URL = "http://localhost:8000";
 
     vi.stubGlobal(
       "fetch",

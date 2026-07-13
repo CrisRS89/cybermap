@@ -71,7 +71,7 @@ Antes de pedir soporte, consulta:
 | **Instalación paso a paso** | [docs/setup/fresh-clone.md](docs/setup/fresh-clone.md) |
 | **Solución de problemas** | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md#troubleshooting) |
 | **Guía de desarrollo** | [docs/DEVELOPMENT.md](docs/DEVELOPMENT.md) |
-| **Arquitectura** | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| **Arquitectura** | [docs/architecture.md](docs/architecture.md) |
 | **Features actuales** | [docs/FEATURES.md](docs/FEATURES.md) |
 | **Roadmap** | [docs/roadmap.md](docs/roadmap.md) |
 | **Contratos API** | [docs/api/](docs/api/) |

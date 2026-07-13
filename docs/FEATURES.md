@@ -10,7 +10,7 @@ Documentación de capacidades actuales, planificadas y futuras.
 |------|--------|---------|------|
 | **Settings** | ✅ Completo | 0.1.0 | [API Contract](api/settings-contract.md) |
 | **Exploration** | ✅ MVP | 0.1.0 | [API Contract](api/exploration-contract.md) |
-| **AI Analysis** | 🔄 Mock | 0.1.0 | [Orchestrator](architecture/ai-gateway.md) |
+| **AI Analysis** | 🔄 Mock | 0.1.0 | [Architecture](architecture.md) |
 | **Blue Team** | 🔴 Pendiente | 0.2.0 | [Roadmap](roadmap.md) |
 | **Red Team** | 🔴 Pendiente | 0.3.0 | [Roadmap](roadmap.md) |
 | **MCP Integration** | 🔴 Pendiente | 0.4.0 | [Roadmap](roadmap.md) |
