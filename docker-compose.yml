@@ -1,0 +1,47 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cybermap-api
+    ports:
+      - "8000:8000"
+    environment:
+      - CYBERMAP_API_APP_NAME=CyberMap API
+      - CYBERMAP_API_ENVIRONMENT=local
+      - CYBERMAP_API_CORS_ORIGINS=http://localhost:3000
+      - CYBERMAP_API_DATA_DIR=/app/data
+    volumes:
+      - cybermap-data:/app/data
+    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  frontend:
+    build:
+      context: apps/web
+      dockerfile: ../Dockerfile.web
+    container_name: cybermap-web
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_BASE_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: npm run start
+
+volumes:
+  cybermap-data:
+    driver: local
+
+networks:
+  default:
+    name: cybermap-network
+    driver: bridge

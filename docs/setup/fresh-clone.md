@@ -23,14 +23,51 @@ Esta guia cubre el MVP local actual:
 | Python 3.13+ | Backend FastAPI |
 | Bash | Scripts locales |
 
+**Opcional (para Docker):**
+- Docker 20.10+
+- Docker Compose
+
 ## Instalacion desde cero
 
-### 1. Clonar repositorio
+### Opción 1: Docker Compose (Recomendado - más rápido)
+
+**Ventajas:** Setup en ~2 minutos, sin instalar dependencias locales
+
+```bash
+# 1. Clonar repositorio
+git clone https://github.com/CrisRS89/cybermap.git cybermap
+cd cybermap
+
+# 2. Levantar servicios
+docker compose up
+
+# 3. Abrir en navegador
+# Frontend: http://localhost:3000
+# API: http://localhost:8000/health
+```
+
+Eso es todo. Los servicios se actualizarán automáticamente si cambias el código.
+
+**Parar servicios:**
+```bash
+docker compose down
+```
+
+**Ver logs:**
+```bash
+docker compose logs -f
+```
+
+---
+
+### Opción 2: Instalación Nativa (Control total)
+
+#### 1. Clonar repositorio
 
     git clone https://github.com/CrisRS89/cybermap.git cybermap
     cd cybermap
 
-### 2. Configurar backend
+#### 2. Configurar backend
 
     cd apps/api
     python -m venv .venv
@@ -38,11 +75,11 @@ Esta guia cubre el MVP local actual:
     pip install -r requirements.txt
     cd ../../
 
-### 3. Configurar frontend
+#### 3. Configurar frontend
 
     npm --prefix apps/web install
 
-### 4. Configurar variables de entorno
+#### 4. Configurar variables de entorno
 
 Backend:
 
@@ -52,7 +89,7 @@ Frontend:
 
     cp apps/web/.env.example apps/web/.env.local
 
-### 5. Validar proyecto
+#### 5. Validar proyecto
 
     ./scripts/validate-local.sh
 
@@ -63,7 +100,7 @@ La validacion ejecuta:
 - tests frontend Vitest
 - build frontend de produccion
 
-## Ejecutar servicios
+## Ejecutar servicios (Nativa)
 
 ### Backend
 
@@ -85,6 +122,32 @@ Abrir:
     http://localhost:3000
     http://localhost:3000/settings
 
+## Usando Makefile (Convenience)
+
+Si prefieres comandos cortos, usa el Makefile:
+
+```bash
+# Setup inicial (instala todo)
+make setup
+
+# Dev mode (levanta backend + frontend)
+make dev
+
+# Tests
+make test
+
+# Validación completa
+make validate
+
+# Docker
+make docker-up
+make docker-down
+make docker-logs
+
+# Ver todos los comandos
+make help
+```
+
 ## Validacion manual minima
 
 1. Abrir /settings.
@@ -97,6 +160,75 @@ Abrir:
 5. Reiniciar backend.
 6. Consultar nuevamente /settings.
 7. Confirmar que el valor persiste.
+
+## Troubleshooting
+
+### Backend no levanta
+
+**Error: "ModuleNotFoundError: No module named 'fastapi'"**
+```bash
+cd apps/api
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+**Error: "Address already in use"**
+```bash
+# Cambiar puerto
+python -m uvicorn app.main:app --reload --port 8001
+```
+
+### Frontend no levanta
+
+**Error: "npm: command not found"**
+- Instalar Node.js desde https://nodejs.org
+
+**Error: "Cannot find module"**
+```bash
+npm --prefix apps/web install
+```
+
+**Error: "Port 3000 already in use"**
+```bash
+npm --prefix apps/web run dev -- -p 3001
+```
+
+### Docker no funciona
+
+**Error: "docker: command not found"**
+- Instalar Docker desde https://docker.com
+
+**Error: "Cannot connect to Docker daemon"**
+- Iniciar el servicio Docker
+
+**Ver logs del error:**
+```bash
+docker compose logs
+```
+
+### Tests fallan
+
+**Backend tests:**
+```bash
+cd apps/api
+source .venv/bin/activate
+python -m pytest -v
+```
+
+**Frontend tests:**
+```bash
+npm --prefix apps/web run test
+```
+
+## Siguientes pasos
+
+Una vez funcionando CyberMap:
+
+1. Lee [docs/ARCHITECTURE.md](../ARCHITECTURE.md) para entender la estructura
+2. Lee [docs/FEATURES.md](../FEATURES.md) para ver capacidades actuales
+3. Lee [docs/roadmap.md](../roadmap.md) para ver el futuro del proyecto
+4. Lee [docs/DEVELOPMENT.md](../DEVELOPMENT.md) para desarrollar features
+5. Lee [CONTRIBUTING.md](../../CONTRIBUTING.md) si quieres contribuir
 
 ## Resultado esperado
 
