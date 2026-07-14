@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+    volumes:
+      - ./apps/api:/app:delegated
+      - ./apps/api/data:/app/data
+    ports:
+      - '8000:8000'
+    env_file:
+      - ./apps/api/.env
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+    volumes:
+      - ./apps/web:/app/apps/web:delegated
+    ports:
+      - '3000:3000'
+    env_file:
+      - ./apps/web/.env.local
+    command: sh -c "npm --prefix apps/web run dev -- -H 0.0.0.0"
+
+# Optional: add a service for a DB later (e.g., sqlite file as volume or postgres)
