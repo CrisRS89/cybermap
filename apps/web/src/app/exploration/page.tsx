@@ -17,8 +17,10 @@ import {
 } from "@/features/exploration/exploration-api";
 import {
   importNmapXml,
+  runNmapScan,
   type ImportNmapXmlSummary,
 } from "@/features/exploration/exploration-imports-api";
+import { useCyberMapSettings } from "@/features/settings/use-cybermap-settings";
 import {
   MAX_NMAP_XML_FILE_BYTES,
   validateNmapXmlFile,
@@ -141,6 +143,14 @@ const nmapCommandPresets = [
   },
 ];
 
+const aiProviderIds: Record<string, string> = {
+  OpenAI: "openai",
+  OpenRouter: "openrouter",
+  Ollama: "ollama",
+  "LM Studio": "lm_studio",
+  Custom: "custom",
+};
+
 function buildNmapCommand(form: NmapCommandFormState): string {
   const target = form.target.trim();
   const outputFile = form.outputFile.trim();
@@ -207,6 +217,7 @@ function getAssetLabel(
 }
 
 export default function ExplorationPage() {
+  const settings = useCyberMapSettings();
   const [state, setState] = useState<ExplorationPageState>({
     status: "loading",
     assets: [],
@@ -230,6 +241,14 @@ export default function ExplorationPage() {
   const [nmapImportSummary, setNmapImportSummary] =
     useState<ImportNmapXmlSummary | null>(null);
   const [isImportingNmap, setIsImportingNmap] = useState(false);
+  const [nmapScanTarget, setNmapScanTarget] = useState("127.0.0.1");
+  const [nmapScanProfile, setNmapScanProfile] = useState<"standard" | "fast">(
+    "standard"
+  );
+  const [nmapScanPorts, setNmapScanPorts] = useState("");
+  const [nmapScanAuthorized, setNmapScanAuthorized] = useState(false);
+  const [isRunningNmapScan, setIsRunningNmapScan] = useState(false);
+  const [nmapScanError, setNmapScanError] = useState<string | null>(null);
   const [selectedNmapFileName, setSelectedNmapFileName] = useState<string | null>(
     null
   );
@@ -560,13 +579,22 @@ export default function ExplorationPage() {
   async function handleRunAiAnalysis() {
     setAiAnalysisError(null);
     setAiAnalysis(null);
+    const providerId = aiProviderIds[settings.aiProvider];
+
+    if (!providerId) {
+      setAiAnalysisError(
+        "El proveedor seleccionado todavía no usa el adaptador compatible. Elegí OpenAI, OpenRouter, Ollama, LM Studio o Custom."
+      );
+      return;
+    }
+
     setIsRunningAiAnalysis(true);
 
     try {
       const response = await runAiAgent({
         agentId: "exploration_analyst",
-        providerId: "mock",
-        model: "mock-security-model",
+        providerId,
+        model: settings.aiModel.trim(),
         task: "Analizar superficie detectada",
         scope: {
           assetIds: [],
@@ -589,8 +617,42 @@ export default function ExplorationPage() {
     }
   }
 
+  async function handleRunNmapScan(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setNmapScanError(null);
+
+    if (!nmapScanAuthorized) {
+      setNmapScanError("Confirmá que el objetivo está dentro de tu alcance autorizado.");
+      return;
+    }
+
+    setIsRunningNmapScan(true);
+
+    try {
+      const response = await runNmapScan({
+        target: nmapScanTarget.trim(),
+        profile: nmapScanProfile,
+        ports: nmapScanPorts.trim() || undefined,
+        authorized: true,
+      });
+
+      setNmapImportSummary(response.summary);
+      await loadExplorationData();
+    } catch (error) {
+      setNmapScanError(
+        error instanceof Error
+          ? error.message
+          : "No se pudo ejecutar el escaneo Nmap."
+      );
+    } finally {
+      setIsRunningNmapScan(false);
+    }
+  }
+
   const generatedNmapCommand = buildNmapCommand(nmapCommandForm);
   const nmapImportNotice = getNmapImportNotice(nmapImportSummary);
+  const isNmapConnectorEnabled =
+    settings.connectorEnabled && settings.connectorPreset === "Nmap";
 
   const isEmpty =
     state.status === "ready" &&
@@ -628,7 +690,11 @@ export default function ExplorationPage() {
           <button
             type="button"
             onClick={() => void handleRunAiAnalysis()}
-            disabled={isRunningAiAnalysis || state.status !== "ready"}
+            disabled={
+              isRunningAiAnalysis ||
+              state.status !== "ready" ||
+              !settings.aiModel.trim()
+            }
             className="rounded-lg bg-violet-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-violet-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isRunningAiAnalysis ? "Analizando..." : "Analizar con IA"}
@@ -1032,11 +1098,93 @@ export default function ExplorationPage() {
             Importar XML de Nmap
           </h2>
           <p className="max-w-3xl text-sm leading-6 text-slate-300">
-            Podés pegar una salida XML generada por Nmap o cargar un archivo
-            local .xml desde tu equipo. CyberMap no ejecuta Nmap, no descarga
-            URLs y no lee rutas locales; solo procesa el XML cargado o pegado.
+            Podés importar XML generado externamente o ejecutar un perfil local
+            acotado mediante el conector Nmap, con alcance autorizado.
           </p>
         </div>
+
+        <section className="mt-5 rounded-xl border border-emerald-900/60 bg-emerald-950/20 p-4">
+          <div className="flex flex-col gap-2">
+            <h3 className="text-sm font-semibold uppercase tracking-wide text-emerald-300">
+              Escaneo local con conector Nmap
+            </h3>
+            <p className="text-sm leading-6 text-slate-300">
+              El resultado XML se importa automáticamente. El backend solo
+              admite direcciones IP dentro de <code>CYBERMAP_NMAP_ALLOWED_NETWORKS</code>;
+              por defecto, únicamente loopback.
+            </p>
+            {!isNmapConnectorEnabled ? (
+              <p className="rounded-lg border border-amber-900/70 bg-amber-950/30 p-3 text-sm text-amber-100">
+                Activá el conector y seleccioná Nmap en Settings para ejecutar
+                escaneos desde esta pantalla.
+              </p>
+            ) : null}
+          </div>
+
+          <form className="mt-4 grid gap-4 lg:grid-cols-2" onSubmit={handleRunNmapScan}>
+            <label className="grid gap-2 text-sm text-slate-300">
+              Dirección IP autorizada
+              <input
+                value={nmapScanTarget}
+                onChange={(event) => setNmapScanTarget(event.target.value)}
+                disabled={!isNmapConnectorEnabled || isRunningNmapScan}
+                placeholder="127.0.0.1"
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Perfil
+              <select
+                value={nmapScanProfile}
+                onChange={(event) =>
+                  setNmapScanProfile(event.target.value as "standard" | "fast")
+                }
+                disabled={!isNmapConnectorEnabled || isRunningNmapScan}
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <option value="standard">Estándar: detección de servicios</option>
+                <option value="fast">Rápido: puertos frecuentes</option>
+              </select>
+            </label>
+
+            <label className="grid gap-2 text-sm text-slate-300">
+              Puertos opcionales
+              <input
+                value={nmapScanPorts}
+                onChange={(event) => setNmapScanPorts(event.target.value)}
+                disabled={!isNmapConnectorEnabled || isRunningNmapScan}
+                placeholder="22,80,443"
+                className="rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-slate-100 outline-none focus:border-cyan-500 disabled:cursor-not-allowed disabled:opacity-60"
+              />
+            </label>
+
+            <label className="flex items-start gap-3 rounded-lg border border-slate-800 bg-slate-950/60 p-3 text-sm text-slate-300">
+              <input
+                type="checkbox"
+                checked={nmapScanAuthorized}
+                onChange={(event) => setNmapScanAuthorized(event.target.checked)}
+                disabled={!isNmapConnectorEnabled || isRunningNmapScan}
+                className="mt-0.5 h-4 w-4 accent-cyan-400"
+              />
+              Confirmo que tengo autorización explícita para escanear este objetivo.
+            </label>
+
+            <button
+              type="submit"
+              disabled={!isNmapConnectorEnabled || isRunningNmapScan}
+              className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-emerald-500 disabled:cursor-not-allowed disabled:opacity-60 lg:col-span-2"
+            >
+              {isRunningNmapScan ? "Ejecutando escaneo..." : "Ejecutar e importar Nmap"}
+            </button>
+          </form>
+
+          {nmapScanError ? (
+            <p className="mt-4 rounded-lg border border-red-900/70 bg-red-950/30 p-3 text-sm text-red-100">
+              {nmapScanError}
+            </p>
+          ) : null}
+        </section>
 
         <section className="mt-5 rounded-xl border border-cyan-900/60 bg-cyan-950/20 p-4">
           <div className="flex flex-col gap-2">
@@ -1049,8 +1197,8 @@ export default function ExplorationPage() {
             </p>
             <p className="rounded-lg border border-amber-900/70 bg-amber-950/30 p-3 text-sm leading-6 text-amber-100">
               Usá estos comandos solo sobre sistemas propios o sobre objetivos
-              donde tengas autorización explícita. En esta fase CyberMap no
-              ejecuta escaneos; solo importa XML generado externamente.
+              donde tengas autorización explícita. Para un escaneo gestionado,
+              usá el conector acotado que está arriba.
             </p>
           </div>
 

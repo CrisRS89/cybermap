@@ -1,4 +1,6 @@
-from pydantic import BaseModel, ConfigDict
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class NmapImportRequest(BaseModel):
@@ -34,4 +36,24 @@ class NmapImportResponse(BaseModel):
 
     model_config = ConfigDict(extra="forbid")
 
+    summary: NmapImportSummaryResponse
+
+
+class NmapScanRequest(BaseModel):
+    """Solicitud para ejecutar un escaneo Nmap dentro del alcance autorizado."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    target: str = Field(min_length=1, max_length=45)
+    profile: Literal["standard", "fast"] = "standard"
+    ports: str | None = Field(default=None, max_length=256)
+    authorized: Literal[True]
+
+
+class NmapScanResponse(BaseModel):
+    """Resultado del escaneo e importación automática."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    target: str
     summary: NmapImportSummaryResponse

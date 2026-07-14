@@ -21,7 +21,14 @@ async function requestJson<TResponse>(
   });
 
   if (!response.ok) {
-    throw new Error(`AI API request failed: ${response.status}`);
+    const errorPayload = (await response.json().catch(() => null)) as {
+      detail?: string;
+    } | null;
+    throw new Error(
+      errorPayload?.detail
+        ? `AI API request failed: ${response.status} - ${errorPayload.detail}`
+        : `AI API request failed: ${response.status}`
+    );
   }
 
   return response.json() as Promise<TResponse>;

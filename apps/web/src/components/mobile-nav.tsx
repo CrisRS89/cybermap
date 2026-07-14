@@ -4,6 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigationItems } from "@/data/dashboard-data";
+import { useI18n } from "@/lib/useI18n";
+
+const navigationTranslationKeys: Record<string, string> = {
+  "/": "dashboard",
+  "/exploration": "exploration",
+  "/blue-team": "blueTeam",
+  "/red-team": "redTeam",
+  "/settings": "settings",
+};
 
 function isNavigationItemActive(pathname: string, href: string) {
   if (href === "/") {
@@ -15,6 +24,7 @@ function isNavigationItemActive(pathname: string, href: string) {
 
 export function MobileNav() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <nav className="border-b border-cyan-400/10 bg-slate-950/80 px-4 py-4 backdrop-blur lg:hidden">
@@ -62,7 +72,7 @@ export function MobileNav() {
                   : "border-slate-800 bg-slate-900/40 text-slate-400"
               }`}
             >
-              {item.label}
+              {t(`nav.${navigationTranslationKeys[item.href]}`, item.label)}
             </Link>
           );
         })}

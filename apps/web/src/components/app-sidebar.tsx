@@ -4,6 +4,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { navigationItems } from "@/data/dashboard-data";
+import { useI18n } from "@/lib/useI18n";
+
+const navigationTranslationKeys: Record<string, string> = {
+  "/": "dashboard",
+  "/exploration": "exploration",
+  "/blue-team": "blueTeam",
+  "/red-team": "redTeam",
+  "/settings": "settings",
+};
 
 function isNavigationItemActive(pathname: string, href: string) {
   if (href === "/") {
@@ -15,6 +24,7 @@ function isNavigationItemActive(pathname: string, href: string) {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const { t } = useI18n();
 
   return (
     <aside className="hidden border-r border-cyan-400/10 bg-slate-950/70 px-5 py-6 backdrop-blur lg:block">
@@ -59,7 +69,12 @@ export function AppSidebar() {
                   : "border border-transparent text-slate-400 hover:bg-slate-900 hover:text-slate-100"
               }`}
             >
-              <span>{item.label}</span>
+              <span>
+                {t(
+                  `nav.${navigationTranslationKeys[item.href]}`,
+                  item.label
+                )}
+              </span>
               <span className="text-xs uppercase text-slate-500">
                 {isActive ? "active" : item.status}
               </span>

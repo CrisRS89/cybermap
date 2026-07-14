@@ -1,0 +1,134 @@
+{
+  "dashboard": {
+    "title": "CyberMap Control Center",
+    "subtitle": "Security Ops",
+    "metrics": {
+      "assetsDetected": "Assets detectados",
+      "detectedAssetsHint": "Esperando importación de escaneos",
+      "openPorts": "Puertos abiertos",
+      "openPortsHint": "Sin datos cargados",
+      "vulnerabilities": "Vulnerabilidades",
+      "vulnerabilitiesHint": "CVE pendientes de correlación",
+      "aiActive": "IA activa",
+      "aiActiveHint": "Configurar proveedor en Settings"
+    },
+    "sections": {
+      "exploration": "Exploration",
+      "attackSurfaceMap": "Attack Surface Map",
+      "noDataLoaded": "Sin datos de escaneo cargados",
+      "importNmapHint": "Importá un XML de Nmap o conectá un scanner para comenzar a construir el mapa visual.",
+      "blueTeam": "Blue Team",
+      "defensivePrioritization": "Priorización defensiva",
+      "blueTeamDescription": "El módulo Blue Team correlacionará activos, servicios, CVE, criticidad y recomendaciones de remediación.",
+      "redTeam": "Red Team",
+      "controlledValidation": "Validación controlada",
+      "redTeamDescription": "Las rutas de ataque serán teóricas o requerirán aprobación humana, scope autorizado y auditoría.",
+      "status": "Status",
+      "pendingConfiguration": "Configuración pendiente",
+      "defineProviders": "Definir proveedores de IA, agentes, MCP, conectores, idioma, tema y fondo del dashboard.",
+      "aiGateway": "AI Gateway",
+      "agentHub": "Agent Hub",
+      "mcpLayer": "MCP Layer",
+      "connectors": "Connectors",
+      "pending": "Pendiente"
+    }
+  },
+  "settings": {
+    "title": "Configuración de CyberMap",
+    "description": "Configura apariencia, idioma, IA, agentes, MCP, conectores y políticas de seguridad desde un único centro de control.",
+    "backToDashboard": "← Volver al Dashboard",
+    "sections": {
+      "appearance": "Appearance",
+      "appearanceTitle": "Apariencia",
+      "appearanceDesc": "Configura tema visual y fondo del dashboard. En esta fase la persistencia es local.",
+      "language": "Language",
+      "languageTitle": "Idioma",
+      "languageDesc": "Selector de idioma. La interfaz se actualiza al cambiar.",
+      "aiProviders": "AI Provider Gateway",
+      "aiProvidersTitle": "Proveedores de IA",
+      "aiProvidersDesc": "Define proveedor, modelo, modo de razonamiento y parámetros de generación. Las API keys reales no deben guardarse en frontend.",
+      "agents": "Agent Hub",
+      "agentsTitle": "Agent Hub",
+      "agentsDesc": "Configura agentes para automatización. Ejecución en sandbox con validación de seguridad.",
+      "mcp": "MCP",
+      "mcpTitle": "Model Context Protocol",
+      "mcpDesc": "Servidores MCP para extensibilidad. Los tools ejecutados requieren validación.",
+      "connectors": "Connectors",
+      "connectorsTitle": "Conectores",
+      "connectorsDesc": "Configura fuentes externas de datos. No se guardan secretos reales ni se ejecutan sincronizaciones desde frontend.",
+      "security": "Security",
+      "securityTitle": "Seguridad",
+      "securityDesc": "Políticas de aprobación humana, sandbox y auditoría."
+    },
+    "fields": {
+      "theme": "Tema",
+      "background": "Fondo",
+      "language": "Idioma",
+      "provider": "Proveedor",
+      "model": "Modelo",
+      "apiKey": "API Key",
+      "baseUrl": "URL Base",
+      "apiKeyConfigured": "API key",
+      "configured": "configurada",
+      "notConfigured": "no configurada"
+    },
+    "syncStatus": {
+      "local": "Los settings están guardados localmente.",
+      "syncing": "Sincronizando cambios con backend...",
+      "synced": "Cambios sincronizados correctamente.",
+      "error": "No se pudo sincronizar con el backend."
+    }
+  },
+  "exploration": {
+    "title": "Exploración",
+    "pageTitle": "Superficie de ataque",
+    "pageDesc": "Módulo para visualizar y cargar activos y hallazgos iniciales. Esta versión usa storage JSON temporal en el backend.",
+    "sections": {
+      "assets": "Assets",
+      "findings": "Hallazgos",
+      "nmap": "Importación Nmap",
+      "aiAnalysis": "Análisis IA",
+      "aiHistory": "Historial IA",
+      "recentExecutions": "Ejecuciones recientes",
+      "noRuns": "Todavía no hay ejecuciones IA persistidas. Ejecutá un análisis para crear el primer registro de auditoría."
+    },
+    "buttons": {
+      "import": "Importar escaneo",
+      "refresh": "Refrescar datos",
+      "analyze": "Analizar con IA",
+      "selectFile": "Seleccionar archivo XML",
+      "importNmap": "Importar XML Nmap",
+      "copyCommand": "Copiar comando"
+    },
+    "forms": {
+      "createAsset": "Crear Asset",
+      "createFinding": "Crear Finding",
+      "name": "Nombre",
+      "technicalValue": "Valor técnico",
+      "type": "Tipo",
+      "environment": "Entorno",
+      "criticality": "Criticidad",
+      "title": "Título",
+      "severity": "Severidad",
+      "associatedAsset": "Asset asociado",
+      "evidence": "Evidencia"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "exploration": "Exploration",
+    "blueTeam": "Blue Team",
+    "redTeam": "Red Team",
+    "settings": "Settings"
+  },
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "cancel": "Cancelar",
+    "save": "Guardar",
+    "delete": "Eliminar",
+    "edit": "Editar",
+    "close": "Cerrar"
+  }
+}

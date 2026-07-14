@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useCyberMapSettings } from "@/features/settings/use-cybermap-settings";
 
 const themeClasses: Record<string, string> = {
@@ -33,6 +34,13 @@ export function AppThemeShell({ children }: AppThemeShellProps) {
   const themeClass = themeClasses[settings.theme] ?? themeClasses["Dark Pro"];
   const backgroundClass =
     backgroundClasses[settings.background] ?? backgroundClasses.Nodos;
+
+  // Apply language to HTML element
+  useEffect(() => {
+    const htmlElement = document.documentElement;
+    const lang = settings.language === "EN" ? "en" : "es";
+    htmlElement.lang = lang;
+  }, [settings.language]);
 
   return (
     <div className={`relative min-h-screen overflow-hidden ${themeClass} ${backgroundClass}`}>

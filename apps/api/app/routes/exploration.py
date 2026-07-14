@@ -17,9 +17,12 @@ from app.schemas.nmap_import import (
     NmapImportRequest,
     NmapImportResponse,
     NmapImportSummaryResponse,
+    NmapScanRequest,
+    NmapScanResponse,
 )
 from app.services.nmap_import_service import NmapImportService
 from app.services.nmap_parser import NmapParseError
+from app.services.nmap_scan_service import NmapScanError, NmapScanService
 
 router = APIRouter(prefix="/exploration", tags=["exploration"])
 
@@ -116,4 +119,38 @@ def import_nmap_xml(payload: NmapImportRequest) -> NmapImportResponse:
             openPortsSeen=summary.open_ports_seen,
             warnings=summary.warnings,
         )
+    )
+
+
+@router.post("/scans/nmap", response_model=NmapScanResponse)
+def scan_with_nmap(payload: NmapScanRequest) -> NmapScanResponse:
+    """Ejecuta un perfil mínimo de Nmap e importa automáticamente su XML.
+
+    La ejecución está limitada por ``CYBERMAP_NMAP_ALLOWED_NETWORKS`` y exige
+    confirmación del usuario. La configuración por defecto permite solamente
+    loopback; el administrador debe declarar una red autorizada para ampliarla.
+    """
+
+    service = NmapScanService(NmapImportService(get_exploration_service()))
+
+    try:
+        summary = service.scan(
+            target=payload.target,
+            profile=payload.profile,
+            ports=payload.ports,
+        )
+    except (NmapScanError, NmapParseError) as error:
+        raise HTTPException(status_code=400, detail=str(error)) from error
+
+    return NmapScanResponse(
+        target=payload.target,
+        summary=NmapImportSummaryResponse(
+            assetsCreated=summary.assets_created,
+            assetsSkipped=summary.assets_skipped,
+            servicesCreated=summary.services_created,
+            servicesSkipped=summary.services_skipped,
+            hostsSeen=summary.hosts_seen,
+            openPortsSeen=summary.open_ports_seen,
+            warnings=summary.warnings,
+        ),
     )

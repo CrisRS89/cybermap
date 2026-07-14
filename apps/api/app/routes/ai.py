@@ -4,6 +4,7 @@ from fastapi import APIRouter, HTTPException
 
 from app.ai.agents.base import AgentContext, AgentResult
 from app.ai.orchestrator import AIOrchestrator
+from app.ai.providers.openai_compatible_provider import AIProviderError
 from app.repositories.ai_runs_sqlite_repository import AiRunsSQLiteRepository
 from app.routes.exploration import get_exploration_service
 from app.schemas.ai import (
@@ -50,8 +51,7 @@ def run_ai_agent(payload: AgentRunRequest) -> AgentRunResponse:
     Seguridad:
     - no ejecuta comandos del sistema;
     - no ejecuta escaneos activos;
-    - no llama a proveedores reales en esta fase;
-    - usa provider mock por defecto mediante el orquestador;
+    - los proveedores externos se configuran solo en variables del servidor;
     - limita evidencia según scope;
     - persiste solo resultados estructurados.
     """
@@ -68,7 +68,7 @@ def run_ai_agent(payload: AgentRunRequest) -> AgentRunResponse:
             model=payload.model,
             context=context,
         )
-    except ValueError as error:
+    except (ValueError, AIProviderError) as error:
         raise HTTPException(status_code=400, detail=str(error)) from error
 
     evidence_used = AgentRunEvidenceUsed(

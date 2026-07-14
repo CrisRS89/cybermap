@@ -80,28 +80,20 @@ export function AiProviderSettingsSection({
         />
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_auto] lg:items-end">
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
-          <p className="text-sm font-medium text-slate-100">API key</p>
-          <p className="mt-2 text-xs leading-5 text-slate-500">
-            Estado actual:{" "}
-            <span className="text-amber-200">
-              {settings.aiApiKeyConfigured ? "configurada" : "no configurada"}
-            </span>
-          </p>
-          <p className="mt-2 text-xs leading-5 text-slate-500">
-            La clave real deberá guardarse luego vía backend como secreto
-            cifrado o referencia segura. No se persiste en localStorage.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          className="rounded-xl border border-cyan-400/30 bg-cyan-400/10 px-4 py-3 text-sm text-cyan-100 opacity-70"
-          disabled
-        >
-          Test connection próximamente
-        </button>
+      <div className="mt-4 rounded-2xl border border-slate-800 bg-slate-900/50 p-4">
+        <p className="text-sm font-medium text-slate-100">
+          Credenciales de proveedor
+        </p>
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          La clave no se guarda ni se solicita desde el navegador. Configurá la
+          variable correspondiente en el entorno del backend: `OPENAI_API_KEY`,
+          `OPENROUTER_API_KEY` o `CYBERMAP_AI_CUSTOM_API_KEY`.
+        </p>
+        <p className="mt-2 text-xs leading-5 text-slate-500">
+          Ollama y LM Studio se conectan mediante sus URLs locales configuradas
+          en el backend. El análisis de Exploration usa el proveedor y modelo
+          seleccionados arriba.
+        </p>
       </div>
 
       <div className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-300/5 p-4">
@@ -109,8 +101,8 @@ export function AiProviderSettingsSection({
           Seguridad de secretos
         </p>
         <p className="mt-2 text-xs leading-5 text-slate-400">
-          Esta UI no guarda API keys. Más adelante se enviarán al backend y se
-          almacenarán como referencias cifradas o variables seguras.
+          Esta UI no guarda API keys. CyberMap las lee exclusivamente desde las
+          variables de entorno del backend.
         </p>
       </div>
     </SettingsSection>

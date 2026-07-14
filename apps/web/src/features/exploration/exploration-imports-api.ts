@@ -19,6 +19,18 @@ export type ImportNmapXmlResponse = {
   summary: ImportNmapXmlSummary;
 };
 
+export type RunNmapScanRequest = {
+  target: string;
+  profile: "standard" | "fast";
+  ports?: string;
+  authorized: true;
+};
+
+export type RunNmapScanResponse = {
+  target: string;
+  summary: ImportNmapXmlSummary;
+};
+
 async function requestJson<TResponse>(
   path: string,
   init?: RequestInit
@@ -42,6 +54,15 @@ export async function importNmapXml(
   payload: ImportNmapXmlRequest
 ): Promise<ImportNmapXmlResponse> {
   return requestJson<ImportNmapXmlResponse>("/exploration/imports/nmap", {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
+
+export async function runNmapScan(
+  payload: RunNmapScanRequest
+): Promise<RunNmapScanResponse> {
+  return requestJson<RunNmapScanResponse>("/exploration/scans/nmap", {
     method: "POST",
     body: JSON.stringify(payload),
   });

@@ -1,0 +1,134 @@
+{
+  "dashboard": {
+    "title": "CyberMap Control Center",
+    "subtitle": "Security Ops",
+    "metrics": {
+      "assetsDetected": "Detected Assets",
+      "detectedAssetsHint": "Awaiting scan imports",
+      "openPorts": "Open Ports",
+      "openPortsHint": "No data loaded",
+      "vulnerabilities": "Vulnerabilities",
+      "vulnerabilitiesHint": "CVEs pending correlation",
+      "aiActive": "AI Active",
+      "aiActiveHint": "Configure provider in Settings"
+    },
+    "sections": {
+      "exploration": "Exploration",
+      "attackSurfaceMap": "Attack Surface Map",
+      "noDataLoaded": "No scan data loaded",
+      "importNmapHint": "Import a Nmap XML or connect a scanner to start building the visual map.",
+      "blueTeam": "Blue Team",
+      "defensivePrioritization": "Defensive Prioritization",
+      "blueTeamDescription": "The Blue Team module will correlate assets, services, CVEs, criticality, and remediation recommendations.",
+      "redTeam": "Red Team",
+      "controlledValidation": "Controlled Validation",
+      "redTeamDescription": "Attack paths will be theoretical or require human approval, authorized scope, and audit trail.",
+      "status": "Status",
+      "pendingConfiguration": "Pending Configuration",
+      "defineProviders": "Define AI providers, agents, MCP, connectors, language, theme and dashboard background.",
+      "aiGateway": "AI Gateway",
+      "agentHub": "Agent Hub",
+      "mcpLayer": "MCP Layer",
+      "connectors": "Connectors",
+      "pending": "Pending"
+    }
+  },
+  "settings": {
+    "title": "CyberMap Configuration",
+    "description": "Configure appearance, language, AI, agents, MCP, connectors and security policies from a single control center.",
+    "backToDashboard": "← Back to Dashboard",
+    "sections": {
+      "appearance": "Appearance",
+      "appearanceTitle": "Appearance",
+      "appearanceDesc": "Configure visual theme and dashboard background. In this phase persistence is local.",
+      "language": "Language",
+      "languageTitle": "Language",
+      "languageDesc": "Language selector. The interface updates when you change it.",
+      "aiProviders": "AI Provider Gateway",
+      "aiProvidersTitle": "AI Providers",
+      "aiProvidersDesc": "Define provider, model, reasoning mode and generation parameters. Real API keys should not be saved in frontend.",
+      "agents": "Agent Hub",
+      "agentsTitle": "Agent Hub",
+      "agentsDesc": "Configure agents for automation. Execution in sandbox with security validation.",
+      "mcp": "MCP",
+      "mcpTitle": "Model Context Protocol",
+      "mcpDesc": "MCP servers for extensibility. Executed tools require validation.",
+      "connectors": "Connectors",
+      "connectorsTitle": "Connectors",
+      "connectorsDesc": "Configure external data sources. Real secrets are not saved and synchronization is not executed from frontend.",
+      "security": "Security",
+      "securityTitle": "Security",
+      "securityDesc": "Human approval policies, sandbox and audit trail."
+    },
+    "fields": {
+      "theme": "Theme",
+      "background": "Background",
+      "language": "Language",
+      "provider": "Provider",
+      "model": "Model",
+      "apiKey": "API Key",
+      "baseUrl": "Base URL",
+      "apiKeyConfigured": "API key",
+      "configured": "configured",
+      "notConfigured": "not configured"
+    },
+    "syncStatus": {
+      "local": "Settings are saved locally.",
+      "syncing": "Syncing changes with backend...",
+      "synced": "Changes synced successfully.",
+      "error": "Failed to sync with backend."
+    }
+  },
+  "exploration": {
+    "title": "Exploration",
+    "pageTitle": "Attack Surface",
+    "pageDesc": "Module to load and visualize assets and findings. This version uses temporary JSON storage on the backend.",
+    "sections": {
+      "assets": "Assets",
+      "findings": "Findings",
+      "nmap": "Nmap Import",
+      "aiAnalysis": "AI Analysis",
+      "aiHistory": "AI History",
+      "recentExecutions": "Recent Executions",
+      "noRuns": "No AI executions yet. Run an analysis to create the first audit record."
+    },
+    "buttons": {
+      "import": "Import scan",
+      "refresh": "Refresh data",
+      "analyze": "Analyze with AI",
+      "selectFile": "Select XML file",
+      "importNmap": "Import Nmap XML",
+      "copyCommand": "Copy command"
+    },
+    "forms": {
+      "createAsset": "Create Asset",
+      "createFinding": "Create Finding",
+      "name": "Name",
+      "technicalValue": "Technical value",
+      "type": "Type",
+      "environment": "Environment",
+      "criticality": "Criticality",
+      "title": "Title",
+      "severity": "Severity",
+      "associatedAsset": "Associated asset",
+      "evidence": "Evidence"
+    }
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "exploration": "Exploration",
+    "blueTeam": "Blue Team",
+    "redTeam": "Red Team",
+    "settings": "Settings"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "close": "Close"
+  }
+}
